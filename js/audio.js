@@ -1,7 +1,8 @@
 // === АУДИО СИСТЕМА ===
 const audio = {
   enabled: localStorage.getItem('snakeSoundEnabled') !== 'false',
-  ctx: null
+  ctx: null,
+  bgMusic: null
 };
 
 // === ИНИЦИАЛИЗАЦИЯ AUDIO CONTEXT ===
@@ -67,11 +68,19 @@ function toggleSound() {
 }
 
 // === ЗАГЛУШКА ДЛЯ МУЗЫКИ (SpongeBob стиль + океан) ===
-// Позже заменишь на реальный аудиофайл
+// Заменяем на реальный аудиофайл
 
 function initMusicPlaceholder() {
-  console.log('🎵 Музыка-заглушка: стиль SpongeBob + шум моря');
-  // Здесь будет: audio.bgMusic = new Audio('assets/music/spongebob-ocean.mp3');
+  console.log('🎵 Музыка: инициализация реального файла');
+  try {
+    audio.bgMusic = new Audio('assets/music/261830__setuniman__never-mind-1l23.mp3');
+    audio.bgMusic.loop = true;
+    audio.bgMusic.volume = 0.3; // Начальная громкость
+    audio.bgMusic.preload = 'auto';
+    console.log('🎵 Музыка загружена успешно');
+  } catch (e) {
+    console.warn('🎵 Ошибка загрузки музыки:', e);
+  }
 }
 
 function toggleMusic() {
@@ -79,18 +88,22 @@ function toggleMusic() {
   const isOn = btn.textContent === '🎵';
   btn.textContent = isOn ? '🔇' : '🎵';
   
-  if (isOn) {
-    console.log('🎵 Музыка включена (заглушка)');
-    // Позже: audio.bgMusic.play();
-  } else {
-    console.log('🔇 Музыка выключена');
-    // Позже: audio.bgMusic.pause();
+  if (audio.bgMusic) {
+    if (isOn) {
+      console.log('🎵 Музыка включена');
+      audio.bgMusic.play().catch(e => console.warn('🎵 Ошибка воспроизведения:', e));
+    } else {
+      console.log('🔇 Музыка выключена');
+      audio.bgMusic.pause();
+    }
   }
 }
 
 function setMusicVolume(value) {
   console.log(`🔊 Громкость музыки: ${value}%`);
-  // Позже: audio.bgMusic.volume = value / 100;
+  if (audio.bgMusic) {
+    audio.bgMusic.volume = value / 100;
+  }
 }
 
 // Экспорт для использования в main.js
