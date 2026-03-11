@@ -140,6 +140,11 @@ canvas {
   border-radius: 10px;
   display: block;
   background: #0a1624;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer; /* Помогает iOS распознать кликабельный элемент */
 }
 
 /* Кнопки */
