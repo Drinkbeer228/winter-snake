@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Зимняя Змейка ❄️</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Загрузочный экран -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="snowflake-loader">❄️</div>
+      <h2>Зимняя Змейка</h2>
+      <p>Загрузка...</p>
+    </div>
+  </div>
+
+  <!-- Снежинки -->
+  <div class="snowflakes" id="snowflakes"></div>
+
+  <!-- Игра -->
+  <div class="game-container">
+    <div class="game-info">
+      <div id="score-board">Счёт: 0</div>
+      <div id="combo-indicator" style="display:none;"></div>
+    </div>
+    
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    
+    <div class="controls-row">
+      <button id="sound-toggle-btn">🔊</button>
+      <button id="music-toggle-btn">🎵</button>
+      <button id="restart-btn">🔄</button>
+    </div>
+  </div>
+
+  <!-- Game Over модалка -->
+  <div id="game-over-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>❄️ Игра окончена ❄️</h2>
+      <p>Ваш счёт: <span id="final-score">0</span></p>
+      <p>Рекорд: <span id="final-highscore">0</span></p>
+      <button id="play-again-btn">Играть снова</button>
+    </div>
+  </div>
+
+  <!-- Подключаем модули ПОСЛЕДОВАТЕЛЬНО -->
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
