@@ -103,6 +103,27 @@ function initTouchControls() {
     touchStartX = 0;
     touchStartY = 0;
   }, { passive: false });
+  
+  // 🎮 Кнопки для мобильных (запасной вариант)
+  document.querySelectorAll('#mobile-controls [data-dir]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const dirs = { 
+        up: [0, -CONFIG.GRID], 
+        down: [0, CONFIG.GRID], 
+        left: [-CONFIG.GRID, 0], 
+        right: [CONFIG.GRID, 0] 
+      };
+      const [newDx, newDy] = dirs[e.target.dataset.dir];
+      
+      // Запрет разворота на 180°
+      if (newDx === -state.dx && newDy === -state.dy) return;
+      
+      state.dx = newDx;
+      state.dy = newDy;
+      
+      console.log('🎮 Button control:', e.target.dataset.dir);
+    });
+  });
 }
 
 // Запуск после загрузки DOM
