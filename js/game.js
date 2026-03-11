@@ -227,8 +227,23 @@ function changeDirection(event) {
   
   // Пауза
   if (key === ' ') {
-    state.isPaused = !state.isPaused;
-    playSound('pause');
+    // Если игра на паузе и меню паузы видно - продолжаем
+    if (state.isPaused && !document.getElementById('pause-menu').classList.contains('hidden')) {
+      if (typeof hidePauseMenu === 'function') {
+        hidePauseMenu();
+      }
+      return;
+    }
+    
+    // Если игра не на паузе - открываем меню паузы
+    if (!state.isPaused) {
+      if (typeof togglePauseMenu === 'function') {
+        togglePauseMenu();
+      } else {
+        state.isPaused = !state.isPaused;
+        playSound('pause');
+      }
+    }
     return;
   }
   
@@ -284,6 +299,12 @@ function showGameOverModal() {
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('final-highscore').textContent = state.highScore;
   document.getElementById('game-over-modal').classList.remove('hidden');
+  
+  // Останавливаем игру
+  state.isRunning = false;
+  if (state.gameInterval) {
+    clearInterval(state.gameInterval);
+  }
 }
 
 function hideGameOverModal() {
