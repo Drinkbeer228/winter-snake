@@ -1,9 +1,89 @@
 // === ИНИЦИАЛИЗАЦИЯ ===
 
+// === ГЛАВНОЕ МЕНЮ ===
+const mainMenu = document.getElementById('main-menu');
+const menuHighscore = document.getElementById('menu-highscore');
+
+// Показать меню
+function showMainMenu() {
+  if (mainMenu) {
+    mainMenu.classList.remove('hidden');
+    // Обновить рекорд в меню
+    const savedHighScore = localStorage.getItem('snakeHighScore') || 0;
+    if (menuHighscore) {
+      menuHighscore.textContent = savedHighScore;
+    }
+  }
+}
+
+// Скрыть меню
+function hideMainMenu() {
+  if (mainMenu) {
+    mainMenu.classList.add('hidden');
+  }
+}
+
+// Обработчики кнопок меню
+function initMenuHandlers() {
+  const playBtn = document.getElementById('menu-play-btn');
+  const skinsBtn = document.getElementById('menu-skins-btn');
+  const achievementsBtn = document.getElementById('menu-achievements-btn');
+  const settingsBtn = document.getElementById('menu-settings-btn');
+  const howtoBtn = document.getElementById('menu-howto-btn');
+  
+  if (playBtn) {
+    playBtn.addEventListener('click', () => {
+      hideMainMenu();
+      // Запуск игры (не менять существующую логику)
+      if (typeof resetGame === 'function') {
+        resetGame();
+      }
+    });
+  }
+  
+  if (skinsBtn) {
+    skinsBtn.addEventListener('click', () => {
+      // Открыть модалку скинов (если есть)
+      if (typeof showSkinsModal === 'function') {
+        showSkinsModal();
+      } else {
+        alert('🎨 Скины: скоро будет!');
+      }
+    });
+  }
+  
+  if (achievementsBtn) {
+    achievementsBtn.addEventListener('click', () => {
+      // Открыть модалку достижений (если есть)
+      if (typeof showAchievementsModal === 'function') {
+        showAchievementsModal();
+      } else {
+        alert('🏆 Достижения: скоро будет!');
+      }
+    });
+  }
+  
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+      alert('⚙️ Настройки:\n🔊 Звук: вкл/выкл кнопкой\n📱 Свайпы: работают\n🎵 Музыка: заглушка');
+    });
+  }
+  
+  if (howtoBtn) {
+    howtoBtn.addEventListener('click', () => {
+      alert('❓ Как играть:\n\n⌨️ Стрелки: движение\n📱 Свайпы: на телефоне\n⏸ Пробел: пауза\n🍎 Еда: +10 очков\n⭐ Золотая: +50 очков\n🏆 Рекорд: сохраняется');
+    });
+  }
+}
+
 function initGame() {
   initAudio();
   initMusicPlaceholder();
   initSnake();
+  
+  // Показываем главное меню
+  showMainMenu();
+  initMenuHandlers();
   
   // Кнопки
   document.getElementById('sound-toggle-btn').textContent = audio.enabled ? '🔊' : '🔇';
@@ -12,6 +92,48 @@ function initGame() {
   // Обработчики клавиатуры
   document.addEventListener('keydown', changeDirection);
   
+  // ESC для меню паузы
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.isRunning) {
+      // Если игра на паузе - продолжаем
+      if (state.isPaused && !document.getElementById('pause-menu').classList.contains('hidden')) {
+        hidePauseMenu();
+      } else if (!state.isPaused) {
+        // Если игра не на паузе - открываем меню паузы
+        togglePauseMenu();
+      }
+    }
+  });
+  
+  // Функции меню паузы
+  function togglePauseMenu() {
+    const pauseMenu = document.getElementById('pause-menu');
+    
+    if (state.isPaused) {
+      // Возобновляем игру
+      pauseMenu.classList.add('hidden');
+      state.isPaused = false;
+      playSound('pause');
+    } else {
+      // Ставим на паузу
+      pauseMenu.classList.remove('hidden');
+      state.isPaused = true;
+      playSound('pause');
+    }
+  }
+  
+  function showPauseMenu() {
+    document.getElementById('pause-menu').classList.remove('hidden');
+    state.isPaused = true;
+    playSound('pause');
+  }
+  
+  function hidePauseMenu() {
+    document.getElementById('pause-menu').classList.add('hidden');
+    state.isPaused = false;
+    playSound('pause');
+  }
+  
   // 📱 iOS тач-управление
   initTouchControls();
   
@@ -19,18 +141,36 @@ function initGame() {
   document.getElementById('restart-btn').addEventListener('click', resetGame);
   document.getElementById('sound-toggle-btn').addEventListener('click', toggleSound);
   document.getElementById('music-toggle-btn').addEventListener('click', toggleMusic);
-  document.getElementById('play-again-btn').addEventListener('click', resetGame);
+  document.getElementById('play-again-btn').addEventListener('click', () => {
+    hideMainMenu();
+    resetGame();
+  });
+  document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+    hideGameOverModal();
+    showMainMenu();
+  });
+  
+  // Кнопки меню паузы
+  document.getElementById('resume-btn').addEventListener('click', () => {
+    hidePauseMenu();
+  });
+  
+  document.getElementById('restart-pause-btn').addEventListener('click', () => {
+    hidePauseMenu();
+    resetGame();
+  });
+  
+  document.getElementById('menu-pause-btn').addEventListener('click', () => {
+    hidePauseMenu();
+    showMainMenu();
+  });
   
   // Скрываем лоадер
   setTimeout(() => {
     document.getElementById('loading-screen').classList.add('hidden');
   }, 1000);
   
-  // Старт
-  state.isRunning = true;
-  updateScoreDisplay();
-  createFood();
-  state.gameInterval = setInterval(gameLoop, state.gameSpeed);
+  // НЕ запускаем игру автоматически - ждём нажатия "Играть"
 }
 
 // 📱 Инициализация тач-управления для iOS

@@ -68,7 +68,10 @@ function toggleSound() {
 }
 
 // === ЗАГЛУШКА ДЛЯ МУЗЫКИ (SpongeBob стиль + океан) ===
-// Заменяем на реальный аудиофайл
+// Музыка: "Never mind 1L23" by Setuniman
+// Лицензия: Attribution NonCommercial 4.0 (CC BY-NC 4.0)
+// Источник: https://freesound.org/people/Setuniman/sounds/261830/
+// Атрибуция: Music by Setuniman (https://freesound.org/people/Setuniman/) - Licensed under CC BY-NC 4.0
 
 function initMusicPlaceholder() {
   console.log('🎵 Музыка: инициализация реального файла');

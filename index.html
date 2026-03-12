@@ -16,6 +16,24 @@
     </div>
   </div>
 
+  <!-- Главное меню -->
+  <div id="main-menu" class="main-menu">
+    <div class="menu-content">
+      <h1 class="menu-title">❄️ Зимняя Змейка ❄️</h1>
+      <div class="menu-buttons">
+        <button id="menu-play-btn" class="menu-btn">🎮 Играть</button>
+        <button id="menu-skins-btn" class="menu-btn">🎨 Скины</button>
+        <button id="menu-achievements-btn" class="menu-btn">🏆 Достижения</button>
+        <button id="menu-settings-btn" class="menu-btn">⚙️ Настройки</button>
+        <button id="menu-howto-btn" class="menu-btn">❓ Как играть</button>
+      </div>
+      <div class="menu-footer">
+        <p>Рекорд: <span id="menu-highscore">0</span></p>
+        <p class="menu-version">v1.0</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Снежинки -->
   <div class="snowflakes" id="snowflakes"></div>
 
@@ -43,13 +61,29 @@
     </div>
   </div>
 
+  <!-- Меню паузы -->
+  <div id="pause-menu" class="pause-menu hidden">
+    <div class="pause-content">
+      <h2>⏸️ Пауза</h2>
+      <div class="pause-buttons">
+        <button id="resume-btn" class="pause-btn">▶️ Продолжить</button>
+        <button id="restart-pause-btn" class="pause-btn">🔄 Заново</button>
+        <button id="menu-pause-btn" class="pause-btn">🏠 В меню</button>
+      </div>
+      <p class="pause-hint">Нажми ESC или Пробел для продолжения</p>
+    </div>
+  </div>
+
   <!-- Game Over модалка -->
   <div id="game-over-modal" class="modal hidden">
     <div class="modal-content">
-      <h2>❄️ Игра окончена ❄️</h2>
-      <p>Ваш счёт: <span id="final-score">0</span></p>
+      <h2>Игра окончена!</h2>
+      <p>Финальный счёт: <span id="final-score">0</span></p>
       <p>Рекорд: <span id="final-highscore">0</span></p>
-      <button id="play-again-btn">Играть снова</button>
+      <div class="modal-buttons">
+        <button id="play-again-btn">Играть снова</button>
+        <button id="back-to-menu-btn">🏠 В меню</button>
+      </div>
     </div>
   </div>
 
