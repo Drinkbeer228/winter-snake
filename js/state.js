@@ -34,6 +34,11 @@ const state = {
   gameInterval: null,
   obstacles: [], // Препятствия для уровней 3-5
   foodMovementTimer: null, // Движение еды для уровней 2+
+  poops: [],
+  poopTimerMs: 0,
+  nextPoopAtMs: 0,
+  fruitsSincePoop: 0,
+  mahouts: [],
   fogRadius: null, // Радиус видимости для тумана
   camera: {
     x: 0,
@@ -82,6 +87,11 @@ function resetState() {
   state.lastFrameTimeMs = 0;
   state.accumulatorMs = 0;
   state.obstacles = [];
+  state.poops = [];
+  state.poopTimerMs = 0;
+  state.nextPoopAtMs = 0;
+  state.fruitsSincePoop = 0;
+  state.mahouts = [];
   state.fogRadius = null;
   if (state.rafId) {
     cancelAnimationFrame(state.rafId);

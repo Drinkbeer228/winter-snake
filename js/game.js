@@ -177,6 +177,155 @@ function createFood() {
   }
 }
 
+function spawnPoopAtTail() {
+  if (!state.snake || state.snake.length === 0) return;
+  const tail = state.snake[state.snake.length - 1];
+  if (!tail) return;
+
+  // Не спавним дубликаты
+  if (state.poops && state.poops.some(p => p.x === tail.x && p.y === tail.y)) return;
+
+  state.poops.push({
+    x: tail.x,
+    y: tail.y,
+    createdMs: state.nowMs || Date.now()
+  });
+}
+
+function scheduleNextPoop() {
+  const minMs = 15000;
+  const maxMs = 20000;
+  state.nextPoopAtMs = state.poopTimerMs + (minMs + Math.random() * (maxMs - minMs));
+}
+
+function ensurePoopScheduleStarted() {
+  if (typeof state.nextPoopAtMs !== 'number' || state.nextPoopAtMs <= 0) {
+    scheduleNextPoop();
+  }
+}
+
+function spawnMahout() {
+  // Спавним с края поля (за пределами видимости)
+  const margin = CONFIG.GRID * 2;
+  const side = Math.floor(Math.random() * 4);
+  let x = 0;
+  let y = 0;
+
+  if (side === 0) {
+    x = -margin;
+    y = Math.random() * canvas.height;
+  } else if (side === 1) {
+    x = canvas.width + margin;
+    y = Math.random() * canvas.height;
+  } else if (side === 2) {
+    x = Math.random() * canvas.width;
+    y = -margin;
+  } else {
+    x = Math.random() * canvas.width;
+    y = canvas.height + margin;
+  }
+
+  state.mahouts.push({
+    x,
+    y,
+    state: 'toPoop',
+    speed: 110,
+    target: null
+  });
+
+  if (typeof showToast === 'function') {
+    const variants = ['Олег вышел на уборку!', 'Дима чистит вольер!'];
+    const msg = variants[Math.floor(Math.random() * variants.length)];
+    showToast('🧹 Махаут', msg, 2400);
+  }
+}
+
+function updateMahouts(dtMs) {
+  if (!state.mahouts) state.mahouts = [];
+  if (!state.poops) state.poops = [];
+
+  // Спавн: если куч > 3 и нет активного махаута
+  if (state.poops.length > 3 && state.mahouts.length === 0) {
+    spawnMahout();
+  }
+
+  const dt = dtMs / 1000;
+  const margin = CONFIG.GRID * 3;
+
+  for (let i = state.mahouts.length - 1; i >= 0; i--) {
+    const m = state.mahouts[i];
+
+    if (m.state === 'toPoop') {
+      if (!m.target || !state.poops.some(p => p.x === m.target.x && p.y === m.target.y)) {
+        // находим ближайшую кучу
+        let best = null;
+        let bestD2 = Infinity;
+        for (const p of state.poops) {
+          const tx = p.x + CONFIG.GRID / 2;
+          const ty = p.y + CONFIG.GRID / 2;
+          const dx = tx - m.x;
+          const dy = ty - m.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) {
+            bestD2 = d2;
+            best = { x: p.x, y: p.y };
+          }
+        }
+        m.target = best;
+        if (!m.target) {
+          // нет куч — уходим
+          m.state = 'exit';
+          m.exitX = m.x < canvas.width / 2 ? -margin : canvas.width + margin;
+          m.exitY = m.y < canvas.height / 2 ? -margin : canvas.height + margin;
+        }
+      }
+
+      if (m.target) {
+        const tx = m.target.x + CONFIG.GRID / 2;
+        const ty = m.target.y + CONFIG.GRID / 2;
+        const dx = tx - m.x;
+        const dy = ty - m.y;
+        const dist = Math.hypot(dx, dy);
+        const step = m.speed * dt;
+        if (dist <= Math.max(6, step)) {
+          // убираем кучу
+          for (let k = state.poops.length - 1; k >= 0; k--) {
+            if (state.poops[k].x === m.target.x && state.poops[k].y === m.target.y) {
+              state.poops.splice(k, 1);
+              break;
+            }
+          }
+          m.state = 'exit';
+          m.exitX = m.x < canvas.width / 2 ? -margin : canvas.width + margin;
+          m.exitY = m.y < canvas.height / 2 ? -margin : canvas.height + margin;
+          m.target = null;
+        } else {
+          m.x += (dx / dist) * step;
+          m.y += (dy / dist) * step;
+        }
+      }
+    } else if (m.state === 'exit') {
+      const tx = typeof m.exitX === 'number' ? m.exitX : (canvas.width + margin);
+      const ty = typeof m.exitY === 'number' ? m.exitY : (canvas.height + margin);
+      const dx = tx - m.x;
+      const dy = ty - m.y;
+      const dist = Math.hypot(dx, dy);
+      const step = m.speed * dt;
+      if (dist <= Math.max(6, step)) {
+        state.mahouts.splice(i, 1);
+      } else {
+        m.x += (dx / dist) * step;
+        m.y += (dy / dist) * step;
+      }
+    }
+
+    // Деспавн если далеко за полем (страховка)
+    if (m.x < -margin * 2 || m.x > canvas.width + margin * 2 || m.y < -margin * 2 || m.y > canvas.height + margin * 2) {
+      state.mahouts.splice(i, 1);
+    }
+  }
+}
+
 function advanceSnake() {
   const head = {
     x: state.snake[0].x + state.dx,
@@ -213,6 +362,16 @@ function advanceSnake() {
 
     // Визуальные эффекты
     spawnEatEffects(head.x, head.y, basePoints);
+
+    // Навозный цикл: каждые 5 фруктов — минирование хвостом
+    if (typeof state.fruitsSincePoop !== 'number') state.fruitsSincePoop = 0;
+    state.fruitsSincePoop++;
+    if (state.fruitsSincePoop >= 5) {
+      spawnPoopAtTail();
+      state.fruitsSincePoop = 0;
+      ensurePoopScheduleStarted();
+      scheduleNextPoop();
+    }
     
     // Проверка повышения уровня
     checkLevelUp();
@@ -305,6 +464,20 @@ function updateEffects(dtMs) {
     return;
   }
 
+  // Навоз по таймеру
+  if (!state.poops) state.poops = [];
+  if (typeof state.poopTimerMs !== 'number') state.poopTimerMs = 0;
+  state.poopTimerMs += dtMs;
+  ensurePoopScheduleStarted();
+  if (state.poopTimerMs >= state.nextPoopAtMs) {
+    spawnPoopAtTail();
+    ensurePoopScheduleStarted();
+    scheduleNextPoop();
+  }
+
+  // Махауты-чистильщики
+  updateMahouts(dtMs);
+
   if (state.particles && state.particles.length > 0) {
     const dt = dtMs / 1000;
     const gravity = 140;
@@ -350,6 +523,27 @@ function didGameEnd() {
   for (const obstacle of state.obstacles) {
     if (state.snake[0].x === obstacle.x && state.snake[0].y === obstacle.y) {
       return true;
+    }
+  }
+
+  // Столкновение с навозом
+  if (state.poops && state.poops.length > 0) {
+    for (const p of state.poops) {
+      if (state.snake[0].x === p.x && state.snake[0].y === p.y) {
+        return true;
+      }
+    }
+  }
+
+  // Столкновение с махаутом (опасно)
+  if (state.mahouts && state.mahouts.length > 0) {
+    const hx = state.snake[0].x + CONFIG.GRID / 2;
+    const hy = state.snake[0].y + CONFIG.GRID / 2;
+    const r = CONFIG.GRID * 0.42;
+    for (const m of state.mahouts) {
+      if (Math.hypot(m.x - hx, m.y - hy) <= r) {
+        return true;
+      }
     }
   }
   
