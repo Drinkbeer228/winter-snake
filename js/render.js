@@ -5,6 +5,11 @@ const ctx = canvas.getContext('2d');
 let _groundPattern = null;
 let _groundPatternKey = '';
 
+let _elephantSprite = null;
+let _elephantSpriteKey = '';
+let _fruitSprite = null;
+let _fruitSpriteKey = '';
+
 function clamp01(v) {
   return Math.max(0, Math.min(1, v));
 }
@@ -101,6 +106,281 @@ function ensureGroundPattern() {
 
   _groundPattern = ctx.createPattern(p, 'repeat');
   _groundPatternKey = key;
+}
+
+function ensureElephantSprite() {
+  const key = 'elephant_v1';
+  if (_elephantSprite && _elephantSpriteKey === key) return;
+
+  const s = 96;
+  const c = document.createElement('canvas');
+  c.width = s;
+  c.height = s;
+  const g = c.getContext('2d');
+
+  g.clearRect(0, 0, s, s);
+  g.translate(s / 2, s / 2);
+
+  // Тень-градиент внутри спрайта (сам слон будет отрисован поверх)
+  const bodyGrad = g.createRadialGradient(0, -6, 6, 0, -6, 44);
+  bodyGrad.addColorStop(0, 'rgba(255,255,255,0.18)');
+  bodyGrad.addColorStop(1, 'rgba(0,0,0,0.10)');
+
+  // Тело
+  g.fillStyle = 'rgba(190, 220, 255, 0.92)';
+  g.strokeStyle = 'rgba(255,255,255,0.55)';
+  g.lineWidth = 2;
+  g.beginPath();
+  g.ellipse(0, 4, 30, 36, 0, 0, Math.PI * 2);
+  g.fill();
+  g.stroke();
+
+  // Блик
+  g.fillStyle = bodyGrad;
+  g.beginPath();
+  g.ellipse(0, -2, 26, 30, 0, 0, Math.PI * 2);
+  g.fill();
+
+  // Уши
+  g.fillStyle = 'rgba(200, 235, 255, 0.92)';
+  g.strokeStyle = 'rgba(255,255,255,0.50)';
+  g.lineWidth = 1.5;
+  g.beginPath();
+  g.ellipse(-30, -2, 16, 20, -0.2, 0, Math.PI * 2);
+  g.ellipse(30, -2, 16, 20, 0.2, 0, Math.PI * 2);
+  g.fill();
+  g.stroke();
+
+  // Хобот (направление "вперёд" вверх по экрану)
+  g.fillStyle = 'rgba(175, 210, 245, 0.96)';
+  g.strokeStyle = 'rgba(255,255,255,0.45)';
+  g.lineWidth = 1.5;
+  if (typeof g.roundRect === 'function') {
+    g.beginPath();
+    g.roundRect(-7, -42, 14, 24, 8);
+    g.fill();
+    g.stroke();
+  } else {
+    g.beginPath();
+    g.rect(-7, -42, 14, 24);
+    g.fill();
+    g.stroke();
+  }
+
+  // Кончик хобота
+  g.fillStyle = 'rgba(235, 248, 255, 0.9)';
+  g.beginPath();
+  g.ellipse(0, -42, 8, 7, 0, 0, Math.PI * 2);
+  g.fill();
+
+  // Глазки
+  g.fillStyle = 'rgba(10,22,36,0.8)';
+  g.beginPath();
+  g.ellipse(-10, -10, 2.2, 3.0, 0, 0, Math.PI * 2);
+  g.ellipse(10, -10, 2.2, 3.0, 0, 0, Math.PI * 2);
+  g.fill();
+
+  _elephantSprite = c;
+  _elephantSpriteKey = key;
+}
+
+function ensureFruitSprite() {
+  const key = 'fruit_v1';
+  if (_fruitSprite && _fruitSpriteKey === key) return;
+
+  const s = 72;
+  const c = document.createElement('canvas');
+  c.width = s;
+  c.height = s;
+  const g = c.getContext('2d');
+
+  g.clearRect(0, 0, s, s);
+  g.translate(s / 2, s / 2);
+
+  // Яблоко
+  const grad = g.createRadialGradient(-10, -12, 6, 0, 0, 30);
+  grad.addColorStop(0, 'rgba(255, 210, 210, 1)');
+  grad.addColorStop(0.35, 'rgba(255, 90, 90, 1)');
+  grad.addColorStop(1, 'rgba(160, 20, 30, 1)');
+  g.fillStyle = grad;
+  g.beginPath();
+  g.ellipse(0, 6, 22, 24, 0, 0, Math.PI * 2);
+  g.fill();
+
+  // Блик
+  g.fillStyle = 'rgba(255,255,255,0.28)';
+  g.beginPath();
+  g.ellipse(-9, -2, 6, 10, 0.2, 0, Math.PI * 2);
+  g.fill();
+
+  // Листик
+  g.fillStyle = 'rgba(80, 220, 160, 0.95)';
+  g.beginPath();
+  g.ellipse(10, -18, 10, 6, -0.6, 0, Math.PI * 2);
+  g.fill();
+
+  // Черенок
+  g.strokeStyle = 'rgba(120, 80, 40, 0.9)';
+  g.lineWidth = 3;
+  g.beginPath();
+  g.moveTo(0, -18);
+  g.lineTo(-2, -28);
+  g.stroke();
+
+  _fruitSprite = c;
+  _fruitSpriteKey = key;
+}
+
+function drawShadowAt(x, y, depth, baseRadiusPx) {
+  const p = project(x, y, 0);
+  const fogA = getFogAlpha(depth);
+  const a = (1 - fogA) * 0.18;
+  if (a <= 0.01) return;
+
+  const r = baseRadiusPx * p.scale;
+  ctx.globalAlpha = a;
+  ctx.fillStyle = 'rgba(0,0,0,1)';
+  ctx.beginPath();
+  ctx.ellipse(p.sx, p.sy, r * 1.2, r * 0.75, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function buildCaravanPoints() {
+  // Простая пространственная интерполяция вдоль полилинии змейки
+  const pts = [];
+  if (!state.snake || state.snake.length === 0) return pts;
+
+  const h = state.snake[0];
+  pts.push({ x: h.x + CONFIG.GRID / 2, y: h.y + CONFIG.GRID / 2, segIndex: 0 });
+
+  const stepDist = CONFIG.GRID * 0.60;
+  for (let i = 0; i < state.snake.length - 1; i++) {
+    const a = state.snake[i];
+    const b = state.snake[i + 1];
+    const ax = a.x + CONFIG.GRID / 2;
+    const ay = a.y + CONFIG.GRID / 2;
+    const bx = b.x + CONFIG.GRID / 2;
+    const by = b.y + CONFIG.GRID / 2;
+
+    const dx = bx - ax;
+    const dy = by - ay;
+    const dist = Math.hypot(dx, dy);
+    const n = Math.max(1, Math.floor(dist / stepDist));
+    for (let k = 0; k < n; k++) {
+      const t = k / n;
+      if (i === 0 && k === 0) continue;
+      pts.push({
+        x: ax + dx * t,
+        y: ay + dy * t,
+        segIndex: i + t
+      });
+    }
+  }
+  return pts;
+}
+
+function drawElephantCaravan3D() {
+  ensureElephantSprite();
+  if (!state.snake || state.snake.length === 0) return;
+
+  const pts = buildCaravanPoints();
+  if (pts.length === 0) return;
+
+  const drawList = [];
+  const base = CONFIG.GRID * 1.45;
+
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    const isHead = i === 0;
+
+    // tapering: 5-10% на слона
+    const taper = Math.pow(0.93, i);
+    const sizeWorld = base * (isHead ? 1.10 : 1.0) * taper;
+
+    // небольшая высота у головы
+    const z = isHead ? 10 : 6;
+    const pr = project(p.x, p.y, z);
+
+    const fogA = getFogAlpha(pr.depth);
+    const alpha = 1 - fogA;
+    if (alpha <= 0.02) continue;
+
+    drawList.push({
+      depth: pr.depth,
+      sx: pr.sx,
+      sy: pr.sy,
+      scale: pr.scale,
+      alpha,
+      sizeWorld,
+      worldX: p.x,
+      worldY: p.y
+    });
+  }
+
+  // Depth sort: дальние рисуем первыми
+  drawList.sort((a, b) => b.depth - a.depth);
+
+  for (const d of drawList) {
+    // тень
+    drawShadowAt(d.worldX, d.worldY, d.depth, d.sizeWorld * 0.38);
+
+    const px = d.sizeWorld * d.scale;
+    const w = px;
+    const h = px;
+
+    ctx.globalAlpha = d.alpha;
+
+    // мягкая «обводка» через тень
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 12 * d.scale;
+    ctx.shadowOffsetY = 6 * d.scale;
+
+    ctx.drawImage(_elephantSprite, d.sx - w / 2, d.sy - h / 2, w, h);
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawFood3D() {
+  ensureFruitSprite();
+  if (!state.food) return;
+
+  const cx = state.food.x + CONFIG.GRID / 2;
+  const cy = state.food.y + CONFIG.GRID / 2;
+  const t = state.nowMs || Date.now();
+
+  const bob = 10 + Math.sin(t * 0.004) * 4;
+  const pr = project(cx, cy, bob);
+
+  const fogA = getFogAlpha(pr.depth);
+  const alpha = 1 - fogA;
+  if (alpha <= 0.02) return;
+
+  // тень
+  drawShadowAt(cx, cy, pr.depth, CONFIG.GRID * 0.55);
+
+  const base = CONFIG.GRID * 1.15;
+  const px = base * pr.scale;
+
+  ctx.globalAlpha = alpha;
+  ctx.shadowColor = 'rgba(0,0,0,0.22)';
+  ctx.shadowBlur = 10 * pr.scale;
+  ctx.shadowOffsetY = 5 * pr.scale;
+
+  // лёгкое вращение (псевдо) через горизонтальный сквош
+  const rot = 0.6 + 0.4 * Math.sin(t * 0.006);
+  const w = px * (0.88 + rot * 0.12);
+  const h = px;
+  ctx.drawImage(_fruitSprite, pr.sx - w / 2, pr.sy - h / 2, w, h);
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.globalAlpha = 1;
 }
 
 function drawGround3D() {
@@ -316,8 +596,8 @@ function renderFrame() {
   drawGround3D();
   drawBackgroundSnow();
   drawObstacles();
-  drawFood();
-  drawSnake();
+  drawFood3D();
+  drawElephantCaravan3D();
   drawParticles();
   drawFloatTexts();
   drawFog();
