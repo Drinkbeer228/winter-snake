@@ -15,9 +15,9 @@ const CONFIG = {
 
 // === ЦВЕТА ===
 const COLORS = {
-  SNAKE_HEAD: '#87ceeb',
-  SNAKE_BODY: '#4fc3f7',
-  FOOD: '#ff80ab',
+  SNAKE_HEAD: '#2ecc71',
+  SNAKE_BODY: '#27ae60',
+  FOOD: '#ff3b3b',
   BONUS_FOOD: '#ffd700',
   BG_TOP: '#0f1c16',
   BG_BOTTOM: '#050907',
@@ -29,7 +29,7 @@ const LEVELS = [
   {
     level: 1,
     scoreThreshold: 0,
-    name: 'Зимний лес',
+    name: 'Летний луг',
     speed: 400, // Очень медленно для новичков
     visuals: { 
       bgTop: '#0f1c16', 
@@ -47,7 +47,7 @@ const LEVELS = [
   {
     level: 2,
     scoreThreshold: 100,
-    name: 'Снежная буря',
+    name: 'Тёплый ветер',
     speed: 300, // +25% быстрее (было 150)
     visuals: { 
       bgTop: '#0f1c16', 
@@ -65,7 +65,7 @@ const LEVELS = [
   {
     level: 3,
     scoreThreshold: 200,
-    name: 'Ледяные блоки',
+    name: 'Тропинки',
     speed: 240, // +20% быстрее (было 120)
     visuals: { 
       bgTop: '#0f1c16', 
@@ -84,7 +84,7 @@ const LEVELS = [
   {
     level: 4,
     scoreThreshold: 300,
-    name: 'Туман',
+    name: 'Туман над лугом',
     speed: 180, // +25% быстрее (было 90)
     visuals: { 
       bgTop: '#0f1c16', 
@@ -104,7 +104,7 @@ const LEVELS = [
   {
     level: 5,
     scoreThreshold: 400,
-    name: 'Северное сияние',
+    name: 'Светлячки',
     speed: 120, // +33% быстрее (было 60)
     visuals: { 
       bgTop: '#0f1c16', 

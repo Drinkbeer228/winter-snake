@@ -415,7 +415,20 @@ function advanceSnake() {
   if (state.shovel && head.x === state.shovel.x && head.y === state.shovel.y) {
     state.shovel = null;
     if (!state.poops) state.poops = [];
-    state.poops.length = 0;
+
+    state.broomSweep = {
+      timeMs: 520,
+      durationMs: 520,
+      fromX: -60,
+      toX: canvas.width + 60,
+      fromY: canvas.height * 0.62,
+      toY: canvas.height * 0.38
+    };
+
+    if (typeof showToast === 'function') {
+      showToast('🧹 Олег', 'Олег вышел на уборку!', 1800);
+    }
+
     state.shovelBuffDurationMs = 4500;
     state.shovelBuffTimeMs = state.shovelBuffDurationMs;
     state.score += 25;
@@ -522,7 +535,7 @@ function createSnowBurst(x, y) {
       maxLifeMs: 0,
       rot: Math.random() * Math.PI * 2,
       rotSpeed: (Math.random() * 2 - 1) * (4 + Math.random() * 6),
-      color: 'rgba(255,255,255,1)'
+      color: 'rgba(255, 240, 170, 1)'
     });
     state.particles[state.particles.length - 1].maxLifeMs = state.particles[state.particles.length - 1].lifeMs;
   }
@@ -611,6 +624,30 @@ function updateEffects(dtMs) {
     spawnShovel();
     ensureShovelScheduleStarted();
     scheduleNextShovel();
+  }
+
+  // Олег: смахивание навоза метлой
+  if (state.broomSweep && state.broomSweep.durationMs > 0) {
+    state.broomSweep.timeMs = Math.max(0, state.broomSweep.timeMs - dtMs);
+
+    const s = state.broomSweep;
+    const t = Math.max(0, Math.min(1, s.timeMs / Math.max(1, s.durationMs)));
+    const p = 1 - t;
+    const sweepX = s.fromX + (s.toX - s.fromX) * p;
+
+    if (state.poops && state.poops.length > 0) {
+      for (let i = state.poops.length - 1; i >= 0; i--) {
+        const px = state.poops[i].x + CONFIG.GRID / 2;
+        if (px < sweepX) {
+          state.poops.splice(i, 1);
+        }
+      }
+    }
+
+    if (state.broomSweep.timeMs === 0) {
+      state.broomSweep = null;
+      if (state.poops) state.poops.length = 0;
+    }
   }
 
   // Махауты-чистильщики

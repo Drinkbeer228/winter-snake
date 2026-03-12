@@ -59,6 +59,7 @@ const state = {
   shovelBuffDurationMs: 0,
   shovelTimerMs: 0,
   nextShovelAtMs: 0,
+  broomSweep: null,
   mahouts: [],
   fogRadius: null, // Радиус видимости для тумана
   camera: {
@@ -122,6 +123,7 @@ function resetState() {
   state.shovelBuffDurationMs = 0;
   state.shovelTimerMs = 0;
   state.nextShovelAtMs = 0;
+  state.broomSweep = null;
   state.mahouts = [];
   state.fogRadius = null;
   if (state.rafId) {

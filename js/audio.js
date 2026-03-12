@@ -221,9 +221,9 @@ function initMusicPlaceholder() {
   console.log('🎵 Музыка: инициализация реального файла');
   try {
     // Если добавишь отдельный эмбиент — положи сюда:
-    // assets/sounds/winter_ambient.mp3 (или .ogg)
+    // assets/sounds/summer_ambient.mp3 (или .ogg)
     // Пока используем текущий трек из assets/music.
-    audio.bgMusic = new Audio('assets/sounds/winter_ambient.mp3');
+    audio.bgMusic = new Audio('assets/sounds/summer_ambient.mp3');
     audio.bgMusic.onerror = () => {
       audio.bgMusic = new Audio('assets/music/261830__setuniman__never-mind-1l23.mp3');
       audio.bgMusic.loop = true;

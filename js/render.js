@@ -423,7 +423,8 @@ function ensureBackgroundSnow() {
       r: 1.4 + Math.random() * 2.2,
       vy: 18 + Math.random() * 34,
       vx: (Math.random() * 2 - 1) * 6,
-      a: 0.10 + Math.random() * 0.10
+      a: 0.10 + Math.random() * 0.12,
+      phase: Math.random() * Math.PI * 2
     });
   }
 
@@ -436,7 +437,8 @@ function ensureBackgroundSnow() {
       r: 0.6 + Math.random() * 1.1,
       vy: 8 + Math.random() * 16,
       vx: (Math.random() * 2 - 1) * 3,
-      a: 0.05 + Math.random() * 0.07
+      a: 0.05 + Math.random() * 0.08,
+      phase: Math.random() * Math.PI * 2
     });
   }
 }
@@ -468,8 +470,14 @@ function drawBackgroundSnow() {
 
   const drawLayer = (arr) => {
     for (const s of arr) {
-      ctx.globalAlpha = s.a;
-      ctx.fillStyle = '#ffffff';
+      const t = state.nowMs || Date.now();
+      const tw = 0.55 + 0.45 * Math.sin(t * 0.004 + (s.phase || 0));
+      ctx.globalAlpha = s.a * (0.55 + 0.75 * tw);
+
+      ctx.shadowColor = 'rgba(255, 215, 120, 0.85)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 0;
+      ctx.fillStyle = 'rgba(255, 230, 150, 1)';
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
@@ -481,30 +489,48 @@ function drawBackgroundSnow() {
   drawLayer(state.bgSnowNear);
   ctx.restore();
   ctx.globalAlpha = 1;
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+}
+
+function drawBroomSweep() {
+  if (!state.broomSweep) return;
+  const s = state.broomSweep;
+  const t = Math.max(0, Math.min(1, s.timeMs / Math.max(1, s.durationMs)));
+  const p = 1 - t;
+
+  const x = lerp(s.fromX, s.toX, p);
+  const y = lerp(s.fromY, s.toY, p);
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '64px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  ctx.globalAlpha = 0.65;
+  ctx.shadowColor = 'rgba(255, 220, 140, 0.55)';
+  ctx.shadowBlur = 18;
+  ctx.fillText('🧹', x, y);
+  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 function drawSnowflakeParticle(p) {
   ctx.save();
-  ctx.globalAlpha = p.a;
-  ctx.fillStyle = p.color;
-
-  const r = p.r;
   const x = p.x;
   const y = p.y;
+  const r = p.r;
 
-  // Ромбик
+  ctx.globalAlpha = p.a;
+  ctx.shadowColor = 'rgba(255, 220, 120, 0.9)';
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = p.color || 'rgba(255, 240, 170, 1)';
   ctx.beginPath();
-  ctx.moveTo(x, y - r);
-  ctx.lineTo(x + r, y);
-  ctx.lineTo(x, y + r);
-  ctx.lineTo(x - r, y);
-  ctx.closePath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // Лёгкий "крестик" поверх
-  ctx.globalAlpha = p.a * 0.55;
-  ctx.fillRect(x - r * 0.15, y - r * 1.2, r * 0.3, r * 2.4);
-  ctx.fillRect(x - r * 1.2, y - r * 0.15, r * 2.4, r * 0.3);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
 
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -550,6 +576,7 @@ function renderFrame() {
   drawParticles();
   drawFloatTexts();
   drawStatusEffectsUI();
+  drawBroomSweep();
   drawFog();
 }
 
@@ -565,8 +592,15 @@ function drawManure() {
     const cx = p.x + CONFIG.GRID / 2;
     const cy = p.y + CONFIG.GRID / 2 + 1;
 
-    // лёгкая тень, чтобы было видно на тёмном фоне
-    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    // Контраст на траве: лёгкий светлый ореол + тень
+    ctx.globalAlpha = 0.70;
+    ctx.shadowColor = 'rgba(255,255,255,0.55)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 0;
+    ctx.fillText('💩', cx, cy);
+
+    ctx.globalAlpha = 1;
+    ctx.shadowColor = 'rgba(0,0,0,0.45)';
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 2;
     ctx.fillText('💩', cx, cy);
@@ -861,8 +895,6 @@ function drawSnake() {
 }
 
 function drawFood() {
-  const color = state.foodType === 'bonus' ? COLORS.BONUS_FOOD : '#ff2a3a';
-
   const t = state.nowMs || Date.now();
   const pulse = 1 + 0.14 * Math.sin(t * 0.012);
   const cx = state.food.x + (CONFIG.GRID - 2) / 2;
@@ -876,28 +908,38 @@ function drawFood() {
   ctx.fillRect(cx - w / 2 - 4, cy - h / 2 - 4, w + 8, h + 8);
   ctx.globalAlpha = 1.0;
   
-  // Еда (ягодка)
-  ctx.shadowColor = 'rgba(0,0,0,0.20)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 3;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.ellipse(cx, cy + 1, w * 0.48, h * 0.48, 0, 0, Math.PI * 2);
-  ctx.fill();
+  if (state.foodType === 'bonus') {
+    // Bonus food остаётся как "звёздочка"-блок
+    ctx.shadowColor = 'rgba(0,0,0,0.20)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 3;
+    ctx.fillStyle = COLORS.BONUS_FOOD;
+    ctx.beginPath();
+    ctx.roundRect(cx - w / 2, cy - h / 2, w, h, 6);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    return;
+  }
 
-  // Блик
+  // Еда: сочное яблоко (спрайт)
+  ensureFruitSprite();
+  const size = Math.max(12, (CONFIG.GRID - 2) * 1.45 * pulse);
+
+  ctx.shadowColor = 'rgba(0,0,0,0.22)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 4;
+  ctx.drawImage(_fruitSprite, cx - size / 2, cy - size / 2, size, size);
+
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-  ctx.fillStyle = 'rgba(255,255,255,0.28)';
-  ctx.beginPath();
-  ctx.ellipse(cx - w * 0.16, cy - h * 0.18, w * 0.14, h * 0.20, 0.4, 0, Math.PI * 2);
-  ctx.fill();
 }
 
 function drawObstacles() {
-  ctx.fillStyle = '#87ceeb'; // Ледяной цвет
-  ctx.shadowColor = 'rgba(135, 206, 235, 0.5)';
+  ctx.fillStyle = 'rgba(120, 95, 55, 0.95)';
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
   ctx.shadowBlur = 10;
   
   state.obstacles.forEach(obstacle => {
@@ -907,11 +949,11 @@ function drawObstacles() {
     ctx.fill();
     
     // Блик для объёма
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
     ctx.beginPath();
     ctx.roundRect(obstacle.x + 2, obstacle.y + 2, 6, 6, 2);
     ctx.fill();
-    ctx.fillStyle = '#87ceeb';
+    ctx.fillStyle = 'rgba(120, 95, 55, 0.95)';
   });
   
   ctx.shadowColor = 'transparent';
