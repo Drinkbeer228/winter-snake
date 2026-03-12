@@ -543,11 +543,149 @@ function renderFrame() {
   clearCanvas();
   drawBackgroundSnow();
   drawObstacles();
+  drawManure();
+  drawShovel();
   drawFood();
   drawSnake();
   drawParticles();
   drawFloatTexts();
+  drawStatusEffectsUI();
   drawFog();
+}
+
+function drawManure() {
+  if (!state.poops || state.poops.length === 0) return;
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '18px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+
+  for (const p of state.poops) {
+    const cx = p.x + CONFIG.GRID / 2;
+    const cy = p.y + CONFIG.GRID / 2 + 1;
+
+    // лёгкая тень, чтобы было видно на тёмном фоне
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText('💩', cx, cy);
+  }
+
+  ctx.restore();
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+}
+
+function drawShovel() {
+  if (!state.shovel) return;
+
+  const cx = state.shovel.x + CONFIG.GRID / 2;
+  const cy = state.shovel.y + CONFIG.GRID / 2 + 1;
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '18px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 2;
+  ctx.fillText('🪏', cx, cy);
+  ctx.restore();
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+}
+
+function drawStatusEffectsUI() {
+  if (!state.snake || state.snake.length === 0) return;
+
+  const head = state.snake[0];
+  const hx = head.x + CONFIG.GRID / 2;
+  const hy = head.y + CONFIG.GRID / 2;
+
+  // Debuff: slow (синяя аура + progress bar)
+  if (state.slowDurationMs > 0 && state.slowTimeMs > 0) {
+    const t = Math.max(0, Math.min(1, state.slowTimeMs / state.slowDurationMs));
+
+    // aura
+    ctx.save();
+    ctx.globalAlpha = 0.22 + 0.10 * Math.sin((state.nowMs || Date.now()) * 0.02);
+    ctx.strokeStyle = 'rgba(90, 170, 255, 1)';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(90, 170, 255, 0.9)';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(hx, hy, CONFIG.GRID * 0.75, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // icon + bar
+    const barW = 44;
+    const barH = 6;
+    const bx = hx - barW / 2;
+    const by = hy - CONFIG.GRID * 0.95;
+
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText('🐾↓', bx - 18, by + barH / 2);
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    ctx.fillStyle = 'rgba(10,22,36,0.55)';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, barW, barH, 4);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(90, 170, 255, 0.95)';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, Math.max(0, barW * t), barH, 4);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Buff: shovel active indicator in corner
+  if (state.shovelBuffDurationMs > 0 && state.shovelBuffTimeMs > 0) {
+    const t = Math.max(0, Math.min(1, state.shovelBuffTimeMs / state.shovelBuffDurationMs));
+    const x = 12;
+    const y = canvas.height - 18;
+
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '18px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText('🪏', x, y);
+
+    // mini bar under icon
+    const barW = 42;
+    const barH = 5;
+    const bx = x + 22;
+    const by = y + 7;
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = 'rgba(10,22,36,0.55)';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, barW, barH, 4);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(120, 255, 170, 0.95)';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, Math.max(0, barW * t), barH, 4);
+    ctx.fill();
+
+    ctx.restore();
+  }
 }
 
 function clearCanvas() {

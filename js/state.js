@@ -21,6 +21,7 @@ const state = {
   dx: CONFIG.GRID,
   dy: 0,
   gameSpeed: CONFIG.INITIAL_SPEED,
+  baseGameSpeed: CONFIG.INITIAL_SPEED,
   speedFactor: 1,
   isPaused: false,
   isRunning: false,
@@ -48,10 +49,16 @@ const state = {
   gameInterval: null,
   obstacles: [], // Препятствия для уровней 3-5
   foodMovementTimer: null, // Движение еды для уровней 2+
+  manure: [],
   poops: [],
-  poopTimerMs: 0,
-  nextPoopAtMs: 0,
-  fruitsSincePoop: 0,
+  pendingManureSpawns: [],
+  slowTimeMs: 0,
+  slowDurationMs: 0,
+  shovel: null,
+  shovelBuffTimeMs: 0,
+  shovelBuffDurationMs: 0,
+  shovelTimerMs: 0,
+  nextShovelAtMs: 0,
   mahouts: [],
   fogRadius: null, // Радиус видимости для тумана
   camera: {
@@ -85,6 +92,7 @@ function resetState() {
   state.sessionApples = 0;
   state.comboApples = 0;
   state.gameSpeed = CONFIG.INITIAL_SPEED;
+  state.baseGameSpeed = CONFIG.INITIAL_SPEED;
   state.speedFactor = 1;
   state.isPaused = false;
   state.currentLevel = 1;
@@ -104,10 +112,16 @@ function resetState() {
   state.lastFrameTimeMs = 0;
   state.accumulatorMs = 0;
   state.obstacles = [];
-  state.poops = [];
-  state.poopTimerMs = 0;
-  state.nextPoopAtMs = 0;
-  state.fruitsSincePoop = 0;
+  state.manure = [];
+  state.poops = state.manure;
+  state.pendingManureSpawns = [];
+  state.slowTimeMs = 0;
+  state.slowDurationMs = 0;
+  state.shovel = null;
+  state.shovelBuffTimeMs = 0;
+  state.shovelBuffDurationMs = 0;
+  state.shovelTimerMs = 0;
+  state.nextShovelAtMs = 0;
   state.mahouts = [];
   state.fogRadius = null;
   if (state.rafId) {

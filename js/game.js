@@ -12,15 +12,72 @@ function checkLevelUp() {
     applyLevel(newLevel);
     showLevelTransition(newLevel);
   }
+
+}
+
+function recomputeGameSpeed() {
+  const base = Math.max(CONFIG.MIN_SPEED, state.baseGameSpeed || state.gameSpeed || CONFIG.INITIAL_SPEED);
+  let ms = base;
+
+  // Debuff: slow (-40% speed => steps/sec * 0.6 => ms / 0.6)
+  if (state.slowTimeMs > 0 && state.slowDurationMs > 0) {
+    ms = ms / 0.6;
+  }
+
+  // Buff: shovel ускорение (steps/sec * 1.25 => ms / 1.25)
+  if (state.shovelBuffTimeMs > 0 && state.shovelBuffDurationMs > 0) {
+    ms = ms / 1.25;
+  }
+
+  state.gameSpeed = Math.max(CONFIG.MIN_SPEED, Math.round(ms));
+}
+
+function scheduleManureFromTail(delayMs = 2000) {
+  if (!state.pendingManureSpawns) state.pendingManureSpawns = [];
+  const now = state.nowMs || Date.now();
+  state.pendingManureSpawns.push({ dueMs: now + delayMs });
+}
+
+function scheduleNextShovel() {
+  const minMs = 20000;
+  const maxMs = 30000;
+  state.nextShovelAtMs = state.shovelTimerMs + (minMs + Math.random() * (maxMs - minMs));
+}
+
+function ensureShovelScheduleStarted() {
+  if (typeof state.nextShovelAtMs !== 'number' || state.nextShovelAtMs <= 0) {
+    scheduleNextShovel();
+  }
+}
+
+function spawnShovel() {
+  // 1x1 на сетке
+  const cols = Math.floor(canvas.width / CONFIG.GRID);
+  const rows = Math.floor(canvas.height / CONFIG.GRID);
+
+  for (let tries = 0; tries < 250; tries++) {
+    const x = Math.floor(Math.random() * cols) * CONFIG.GRID;
+    const y = Math.floor(Math.random() * rows) * CONFIG.GRID;
+
+    const occupiedSnake = state.snake && state.snake.some(s => s.x === x && s.y === y);
+    const occupiedFood = state.food && state.food.x === x && state.food.y === y;
+    const occupiedObs = state.obstacles && state.obstacles.some(o => o.x === x && o.y === y);
+    const occupiedPoop = state.poops && state.poops.some(p => p.x === x && p.y === y);
+
+    if (occupiedSnake || occupiedFood || occupiedObs || occupiedPoop) continue;
+    state.shovel = { x, y };
+    return;
+  }
 }
 
 // Применение настроек уровня
 function applyLevel(levelConfig) {
   // Обновляем скорость
-  state.gameSpeed = Math.max(
+  state.baseGameSpeed = Math.max(
     CONFIG.MIN_SPEED,
     Math.round(levelConfig.speed * (state.speedFactor || 1))
   );
+  recomputeGameSpeed();
   // setInterval больше не используется, скорость применяется в rAF цикле
   
   // Применяем механики
@@ -166,7 +223,9 @@ function createFood() {
     x = Math.floor(Math.random() * (canvas.width / CONFIG.GRID)) * CONFIG.GRID;
     y = Math.floor(Math.random() * (canvas.height / CONFIG.GRID)) * CONFIG.GRID;
     valid = !state.snake.some(part => part.x === x && part.y === y) &&
-            !state.obstacles.some(obs => obs.x === x && obs.y === y);
+            !state.obstacles.some(obs => obs.x === x && obs.y === y) &&
+            !(state.poops && state.poops.some(p => p.x === x && p.y === y)) &&
+            !(state.shovel && state.shovel.x === x && state.shovel.y === y);
   }
   
   state.food = { x, y };
@@ -222,18 +281,6 @@ function spawnPoopAtTail() {
   });
 }
 
-function scheduleNextPoop() {
-  const minMs = 15000;
-  const maxMs = 20000;
-  state.nextPoopAtMs = state.poopTimerMs + (minMs + Math.random() * (maxMs - minMs));
-}
-
-function ensurePoopScheduleStarted() {
-  if (typeof state.nextPoopAtMs !== 'number' || state.nextPoopAtMs <= 0) {
-    scheduleNextPoop();
-  }
-}
-
 function spawnMahout() {
   // Спавним с края поля (за пределами видимости)
   const margin = CONFIG.GRID * 2;
@@ -264,7 +311,7 @@ function spawnMahout() {
   });
 
   if (typeof showToast === 'function') {
-    const variants = ['Олег вышел на уборку!', 'Дима чистит вольер!'];
+    const variants = ['Олег вышел на уборку!'];
     const msg = variants[Math.floor(Math.random() * variants.length)];
     showToast('🧹 Махаут', msg, 2400);
   }
@@ -363,6 +410,30 @@ function advanceSnake() {
   };
   
   state.snake.unshift(head);
+
+  // Подбор лопаты
+  if (state.shovel && head.x === state.shovel.x && head.y === state.shovel.y) {
+    state.shovel = null;
+    if (!state.poops) state.poops = [];
+    state.poops.length = 0;
+    state.shovelBuffDurationMs = 4500;
+    state.shovelBuffTimeMs = state.shovelBuffDurationMs;
+    state.score += 25;
+    updateScoreDisplay();
+    recomputeGameSpeed();
+  }
+
+  // Дебафф от навоза (не конец игры)
+  if (state.poops && state.poops.length > 0) {
+    for (const p of state.poops) {
+      if (head.x === p.x && head.y === p.y) {
+        state.slowDurationMs = 3000;
+        state.slowTimeMs = state.slowDurationMs;
+        recomputeGameSpeed();
+        break;
+      }
+    }
+  }
   
   if (head.x === state.food.x && head.y === state.food.y) {
     // Очки
@@ -381,12 +452,13 @@ function advanceSnake() {
       }
     }
 
-    // Speed curve: ускоряемся на 1.5% за яблоко, но с cap
+    // Speed curve: ускоряемся на 1.5% за яблоко
     state.speedFactor *= 0.985;
-    state.gameSpeed = Math.max(
+    state.baseGameSpeed = Math.max(
       CONFIG.MIN_SPEED,
       Math.round(state.currentLevelConfig.speed * state.speedFactor)
     );
+    recomputeGameSpeed();
 
     updateScoreDisplay();
 
@@ -396,22 +468,15 @@ function advanceSnake() {
     // Мягкая зелёная пульсация после еды
     state.digestGlowMs = 900;
 
+    // Навоз: через 2 секунды после еды появится кучка в координатах хвоста
+    scheduleManureFromTail(2000);
+
     // Яблоки-валюта
     if (typeof state.sessionApples !== 'number') state.sessionApples = 0;
     if (typeof state.comboApples !== 'number') state.comboApples = 0;
     state.sessionApples += 1;
     state.comboApples += 1;
 
-    // Навозный цикл: каждые 5 фруктов — минирование хвостом
-    if (typeof state.fruitsSincePoop !== 'number') state.fruitsSincePoop = 0;
-    state.fruitsSincePoop++;
-    if (state.fruitsSincePoop >= 5) {
-      spawnPoopAtTail();
-      state.fruitsSincePoop = 0;
-      ensurePoopScheduleStarted();
-      scheduleNextPoop();
-    }
-    
     // Проверка повышения уровня
     checkLevelUp();
     
@@ -508,15 +573,44 @@ function updateEffects(dtMs) {
     state.digestGlowMs = Math.max(0, state.digestGlowMs - dtMs);
   }
 
-  // Навоз по таймеру
+  // Debuff slow
+  if (state.slowTimeMs > 0) {
+    const before = state.slowTimeMs;
+    state.slowTimeMs = Math.max(0, state.slowTimeMs - dtMs);
+    if (before > 0 && state.slowTimeMs === 0) {
+      recomputeGameSpeed();
+    }
+  }
+
+  // Buff shovel
+  if (state.shovelBuffTimeMs > 0) {
+    const before = state.shovelBuffTimeMs;
+    state.shovelBuffTimeMs = Math.max(0, state.shovelBuffTimeMs - dtMs);
+    if (before > 0 && state.shovelBuffTimeMs === 0) {
+      recomputeGameSpeed();
+    }
+  }
+
+  // Навоз: отложенный спавн после еды
   if (!state.poops) state.poops = [];
-  if (typeof state.poopTimerMs !== 'number') state.poopTimerMs = 0;
-  state.poopTimerMs += dtMs;
-  ensurePoopScheduleStarted();
-  if (state.poopTimerMs >= state.nextPoopAtMs) {
-    spawnPoopAtTail();
-    ensurePoopScheduleStarted();
-    scheduleNextPoop();
+  if (state.pendingManureSpawns && state.pendingManureSpawns.length > 0) {
+    const now = state.nowMs || Date.now();
+    for (let i = state.pendingManureSpawns.length - 1; i >= 0; i--) {
+      if (now >= state.pendingManureSpawns[i].dueMs) {
+        spawnPoopAtTail();
+        state.pendingManureSpawns.splice(i, 1);
+      }
+    }
+  }
+
+  // Лопата: спавн раз в 20-30 секунд
+  if (typeof state.shovelTimerMs !== 'number') state.shovelTimerMs = 0;
+  state.shovelTimerMs += dtMs;
+  ensureShovelScheduleStarted();
+  if (!state.shovel && state.shovelTimerMs >= state.nextShovelAtMs) {
+    spawnShovel();
+    ensureShovelScheduleStarted();
+    scheduleNextShovel();
   }
 
   // Махауты-чистильщики
@@ -567,15 +661,6 @@ function didGameEnd() {
   for (const obstacle of state.obstacles) {
     if (state.snake[0].x === obstacle.x && state.snake[0].y === obstacle.y) {
       return true;
-    }
-  }
-
-  // Столкновение с навозом
-  if (state.poops && state.poops.length > 0) {
-    for (const p of state.poops) {
-      if (state.snake[0].x === p.x && state.snake[0].y === p.y) {
-        return true;
-      }
     }
   }
 

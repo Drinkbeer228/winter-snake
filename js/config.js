@@ -19,8 +19,8 @@ const COLORS = {
   SNAKE_BODY: '#4fc3f7',
   FOOD: '#ff80ab',
   BONUS_FOOD: '#ffd700',
-  BG_TOP: '#1e3a50',
-  BG_BOTTOM: '#0a1624',
+  BG_TOP: '#0f1c16',
+  BG_BOTTOM: '#050907',
   FOOD_GLOW: '#ffffff'
 };
 
@@ -32,8 +32,8 @@ const LEVELS = [
     name: 'Зимний лес',
     speed: 400, // Очень медленно для новичков
     visuals: { 
-      bgTop: '#1a3a52', 
-      bgBottom: '#0a1624', 
+      bgTop: '#0f1c16', 
+      bgBottom: '#050907', 
       snowSpeed: 1,
       fogOpacity: 0
     },
@@ -50,8 +50,8 @@ const LEVELS = [
     name: 'Снежная буря',
     speed: 300, // +25% быстрее (было 150)
     visuals: { 
-      bgTop: '#2c3e50', 
-      bgBottom: '#0a0f16', 
+      bgTop: '#0f1c16', 
+      bgBottom: '#050907', 
       snowSpeed: 2,
       fogOpacity: 0
     },
@@ -68,8 +68,8 @@ const LEVELS = [
     name: 'Ледяные блоки',
     speed: 240, // +20% быстрее (было 120)
     visuals: { 
-      bgTop: '#34495e', 
-      bgBottom: '#0d131a', 
+      bgTop: '#0f1c16', 
+      bgBottom: '#050907', 
       snowSpeed: 1.5,
       fogOpacity: 0
     },
@@ -87,8 +87,8 @@ const LEVELS = [
     name: 'Туман',
     speed: 180, // +25% быстрее (было 90)
     visuals: { 
-      bgTop: '#1b2631', 
-      bgBottom: '#0a1016', 
+      bgTop: '#0f1c16', 
+      bgBottom: '#050907', 
       snowSpeed: 1,
       fogOpacity: 0.7,
       fogRadius: 5 * CONFIG.GRID
@@ -107,8 +107,8 @@ const LEVELS = [
     name: 'Северное сияние',
     speed: 120, // +33% быстрее (было 60)
     visuals: { 
-      bgTop: '#0f1419', 
-      bgBottom: '#05080a', 
+      bgTop: '#0f1c16', 
+      bgBottom: '#050907', 
       snowSpeed: 0.5,
       fogOpacity: 0.3,
       fogRadius: 8 * CONFIG.GRID,
