@@ -41,6 +41,8 @@ function showMainMenu() {
       menuHighscore.textContent = savedHighScore;
     }
   }
+
+  updateMainMenuButtons();
 }
 
 // Скрыть меню
@@ -50,7 +52,43 @@ function hideMainMenu() {
   }
 }
 
-function stopAndResetToMenu() {
+function canResumeRun() {
+  const gameOverModal = document.getElementById('game-over-modal');
+  const gameOverVisible = gameOverModal && !gameOverModal.classList.contains('hidden');
+  return !gameOverVisible && state.score > 0 && state.snake && state.snake.length > 0;
+}
+
+function updateMainMenuButtons() {
+  const playBtn = document.getElementById('menu-play-btn');
+  const newGameBtn = document.getElementById('menu-newgame-btn');
+
+  const resumable = canResumeRun();
+  if (playBtn) {
+    playBtn.textContent = resumable ? '▶️ Продолжить' : '🎮 Играть';
+  }
+  if (newGameBtn) {
+    newGameBtn.classList.toggle('hidden', !resumable);
+  }
+}
+
+function pauseToMenu() {
+  if (typeof pauseGame === 'function') {
+    pauseGame();
+  } else {
+    state.isPaused = true;
+    state.isRunning = false;
+    if (typeof stopGameLoop === 'function') stopGameLoop();
+  }
+
+  const pauseMenu = document.getElementById('pause-menu');
+  if (pauseMenu) {
+    pauseMenu.classList.add('hidden');
+  }
+
+  showMainMenu();
+}
+
+function resetToMenu() {
   if (typeof pauseGame === 'function') {
     pauseGame();
   } else {
@@ -80,6 +118,7 @@ function stopAndResetToMenu() {
 // Обработчики кнопок меню
 function initMenuHandlers() {
   const playBtn = document.getElementById('menu-play-btn');
+  const newGameBtn = document.getElementById('menu-newgame-btn');
   const skinsBtn = document.getElementById('menu-skins-btn');
   const achievementsBtn = document.getElementById('menu-achievements-btn');
   const settingsBtn = document.getElementById('menu-settings-btn');
@@ -87,8 +126,23 @@ function initMenuHandlers() {
   
   if (playBtn) {
     playBtn.addEventListener('click', () => {
+      const resumable = canResumeRun();
       hideMainMenu();
-      // Запуск игры (не менять существующую логику)
+
+      if (resumable && typeof resumeGame === 'function') {
+        resumeGame();
+        return;
+      }
+
+      if (typeof resetGame === 'function') {
+        resetGame();
+      }
+    });
+  }
+
+  if (newGameBtn) {
+    newGameBtn.addEventListener('click', () => {
+      hideMainMenu();
       if (typeof resetGame === 'function') {
         resetGame();
       }
@@ -212,7 +266,7 @@ function initGame() {
   document.getElementById('music-toggle-btn').addEventListener('click', toggleMusic);
   document.getElementById('home-btn').addEventListener('click', () => {
     if (state.isRunning) {
-      stopAndResetToMenu();
+      pauseToMenu();
     } else {
       // Если игра не идёт - открываем главное меню
       showMainMenu();
@@ -223,7 +277,7 @@ function initGame() {
     resetGame();
   });
   document.getElementById('back-to-menu-btn').addEventListener('click', () => {
-    stopAndResetToMenu();
+    resetToMenu();
   });
   
   // Кнопки меню паузы
@@ -237,7 +291,7 @@ function initGame() {
   });
   
   document.getElementById('menu-pause-btn').addEventListener('click', () => {
-    stopAndResetToMenu();
+    pauseToMenu();
   });
 
   document.getElementById('share-btn').addEventListener('click', () => {

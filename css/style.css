@@ -76,6 +76,10 @@ body {
   display: none;
 }
 
+.hidden {
+  display: none;
+}
+
 .menu-content {
   text-align: center;
   padding: 40px;
