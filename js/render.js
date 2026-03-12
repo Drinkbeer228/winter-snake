@@ -380,11 +380,18 @@ function updateScoreDisplay() {
   const scoreValueEl = document.getElementById('score-value');
   const bestValueEl = document.getElementById('best-value');
   const speedValueEl = document.getElementById('speed-value');
+  const scoreNumEl = document.getElementById('score-num');
+  const bestNumEl = document.getElementById('best-num');
+  const speedNumEl = document.getElementById('speed-num');
   const speedCps = Math.round(1000 / Math.max(1, state.gameSpeed));
 
-  if (scoreValueEl) scoreValueEl.textContent = `Счёт: ${state.score}`;
-  if (bestValueEl) bestValueEl.textContent = `Best: ${state.highScore}`;
-  if (speedValueEl) speedValueEl.textContent = `Speed: ${speedCps}`;
+  if (scoreNumEl) scoreNumEl.textContent = `${state.score}`;
+  if (bestNumEl) bestNumEl.textContent = `${state.highScore}`;
+  if (speedNumEl) speedNumEl.textContent = `${speedCps}`;
+
+  if (scoreValueEl && !scoreNumEl) scoreValueEl.textContent = `🍎 ${state.score}`;
+  if (bestValueEl && !bestNumEl) bestValueEl.textContent = `🏆 ${state.highScore}`;
+  if (speedValueEl && !speedNumEl) speedValueEl.textContent = `⚡ ${speedCps}`;
   if (scoreEl && !scoreValueEl) {
     scoreEl.textContent = `Счёт: ${state.score} | Best: ${state.highScore} | Speed: ${speedCps}`;
   }
@@ -411,7 +418,10 @@ function updateComboDisplay() {
     const icon = state.combo >= 10 ? '🔥' : state.combo >= 5 ? '⚡' : '✨';
     comboEl.textContent = `${icon} Комбо x${state.combo}`;
     comboEl.style.opacity = '1';
+    const scale = Math.min(1.22, 0.92 + state.combo * 0.03);
+    comboEl.style.transform = `translateX(-50%) scale(${scale})`;
   } else {
     comboEl.style.opacity = '0';
+    comboEl.style.transform = 'translateX(-50%) scale(0.9)';
   }
 }
