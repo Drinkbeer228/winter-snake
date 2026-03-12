@@ -2,7 +2,7 @@
 const CONFIG = {
   GRID: 20,
   CANVAS_SIZE: 400,
-  INITIAL_SPEED: 100,
+  INITIAL_SPEED: 200, // Уменьшили с 100 до 200 (медленнее)
   MIN_SPEED: 50,
   SPEED_DECREMENT: 10,
   SPEED_INTERVAL: 50,
@@ -30,7 +30,7 @@ const LEVELS = [
     level: 1,
     scoreThreshold: 0,
     name: 'Зимний лес',
-    speed: 100,
+    speed: 200, // Очень медленно для новичков
     visuals: { 
       bgTop: '#1a3a52', 
       bgBottom: '#0a1624', 
@@ -48,7 +48,7 @@ const LEVELS = [
     level: 2,
     scoreThreshold: 100,
     name: 'Снежная буря',
-    speed: 80, // +20% быстрее
+    speed: 150, // +25% быстрее (было 80)
     visuals: { 
       bgTop: '#2c3e50', 
       bgBottom: '#0a0f16', 
@@ -66,7 +66,7 @@ const LEVELS = [
     level: 3,
     scoreThreshold: 200,
     name: 'Ледяные блоки',
-    speed: 70,
+    speed: 120, // +20% быстрее (было 70)
     visuals: { 
       bgTop: '#34495e', 
       bgBottom: '#0d131a', 
@@ -85,7 +85,7 @@ const LEVELS = [
     level: 4,
     scoreThreshold: 300,
     name: 'Туман',
-    speed: 60,
+    speed: 90, // +25% быстрее (было 60)
     visuals: { 
       bgTop: '#1b2631', 
       bgBottom: '#0a1016', 
@@ -105,7 +105,7 @@ const LEVELS = [
     level: 5,
     scoreThreshold: 400,
     name: 'Северное сияние',
-    speed: 50, // Максимальная скорость
+    speed: 60, // +33% быстрее (было 50)
     visuals: { 
       bgTop: '#0f1419', 
       bgBottom: '#05080a', 
