@@ -30,42 +30,11 @@ function wrapAngleRad(a) {
 }
 
 function updateCameraFollow(dtMs) {
-  if (!state.camera || !state.snake || state.snake.length === 0) return;
-
-  const head = state.snake[0];
-  const dirX = Math.sign(state.dx) || 0;
-  const dirY = Math.sign(state.dy) || 1;
-
-  const yawTarget = Math.atan2(dirX, dirY);
-  state.camera.yaw = wrapAngleRad(state.camera.yaw + wrapAngleRad(yawTarget - state.camera.yaw) * 0.12);
-
-  const bx = head.x - dirX * state.camera.back;
-  const by = head.y - dirY * state.camera.back;
-
-  const t = 1 - Math.pow(1 - state.camera.lerp, Math.max(1, dtMs) / 16);
-  state.camera.x = lerp(state.camera.x, bx, t);
-  state.camera.y = lerp(state.camera.y, by, t);
-
-  state.camera.bottomY = canvas.height - 8;
-  state.camera.horizonY = Math.max(42, canvas.height * 0.22);
+  return;
 }
 
 function project(x, y, z = 0) {
-  const cam = state.camera;
-  const dx = x - cam.x;
-  const dy = y - cam.y;
-  const c = Math.cos(-cam.yaw);
-  const s = Math.sin(-cam.yaw);
-
-  const lateral = dx * c - dy * s;
-  const depth = Math.max(0.0001, dx * s + dy * c);
-
-  const persp = cam.fov / (cam.fov + depth);
-  const sx = canvas.width / 2 + lateral * persp;
-  const groundSy = cam.horizonY + (cam.bottomY - cam.horizonY) * persp;
-  const sy = groundSy - z * persp;
-
-  return { sx, sy, scale: persp, depth };
+  return { sx: x, sy: y, scale: 1, depth: 0 };
 }
 
 function getFogAlpha(depth) {
@@ -430,270 +399,11 @@ function buildCaravanPoints() {
 }
 
 function drawWorldEntities3D() {
-  ensureElephantSprite();
-  ensureFruitSprite();
-  ensurePoopSprite();
-  ensureMahoutSprite();
-
-  const drawList = [];
-
-  // --- Food ---
-  if (state.food) {
-    const cx = state.food.x + CONFIG.GRID / 2;
-    const cy = state.food.y + CONFIG.GRID / 2;
-    const t = state.nowMs || Date.now();
-    const bob = 10 + Math.sin(t * 0.004) * 4;
-    const pr = project(cx, cy, bob);
-    const fogA = getFogAlpha(pr.depth);
-    const alpha = 1 - fogA;
-    if (alpha > 0.02) {
-      const base = CONFIG.GRID * 1.15;
-      const px = base * pr.scale;
-      const rot = 0.6 + 0.4 * Math.sin(t * 0.006);
-      const w = px * (0.88 + rot * 0.12);
-      const h = px;
-      drawList.push({
-        kind: 'food',
-        depth: pr.depth,
-        sx: pr.sx,
-        sy: pr.sy,
-        scale: pr.scale,
-        alpha,
-        worldX: cx,
-        worldY: cy,
-        w,
-        h
-      });
-    }
-  }
-
-  // --- Poops ---
-  if (state.poops && state.poops.length > 0) {
-    for (const p of state.poops) {
-      const cx = p.x + CONFIG.GRID / 2;
-      const cy = p.y + CONFIG.GRID / 2;
-      const pr = project(cx, cy, 0);
-      const fogA = getFogAlpha(pr.depth);
-      const alpha = 1 - fogA;
-      if (alpha <= 0.02) continue;
-      const base = CONFIG.GRID * 0.95;
-      const px = base * pr.scale;
-      drawList.push({
-        kind: 'poop',
-        depth: pr.depth,
-        sx: pr.sx,
-        sy: pr.sy,
-        scale: pr.scale,
-        alpha,
-        worldX: cx,
-        worldY: cy,
-        w: px,
-        h: px
-      });
-    }
-  }
-
-  // --- Mahouts ---
-  if (state.mahouts && state.mahouts.length > 0) {
-    for (const m of state.mahouts) {
-      const cx = m.x;
-      const cy = m.y;
-      const t = state.nowMs || Date.now();
-      const runBob = 6 + Math.sin(t * 0.018 + cx * 0.01) * 1.2;
-      const pr = project(cx, cy, runBob);
-      const fogA = getFogAlpha(pr.depth);
-      const alpha = 1 - fogA;
-      if (alpha <= 0.02) continue;
-      const base = CONFIG.GRID * 1.25;
-      const px = base * pr.scale;
-      drawList.push({
-        kind: 'mahout',
-        depth: pr.depth,
-        sx: pr.sx,
-        sy: pr.sy,
-        scale: pr.scale,
-        alpha,
-        worldX: cx,
-        worldY: cy,
-        w: px,
-        h: px
-      });
-    }
-  }
-
-  // --- Elephants (caravan) ---
-  if (state.snake && state.snake.length > 0) {
-    const pts = buildCaravanPoints();
-    const base = CONFIG.GRID * 1.45;
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      const isHead = i === 0;
-
-      // angle по касательной (между текущей и следующей точкой)
-      const next = pts[i + 1] || pts[i - 1] || p;
-      const dx = (next.x - p.x);
-      const dy = (next.y - p.y);
-      const angle = Math.atan2(dy, dx) + Math.PI / 2;
-
-      // tapering: 5-10% на слона
-      const taper = Math.pow(0.93, i);
-      const sizeWorld = base * (isHead ? 1.10 : 1.0) * taper;
-
-      // небольшая высота у головы
-      const z = isHead ? 10 : 6;
-      const pr = project(p.x, p.y, z);
-
-      const fogA = getFogAlpha(pr.depth);
-      const alpha = 1 - fogA;
-      if (alpha <= 0.02) continue;
-
-      const px = sizeWorld * pr.scale;
-      drawList.push({
-        kind: 'elephant',
-        depth: pr.depth,
-        sx: pr.sx,
-        sy: pr.sy,
-        scale: pr.scale,
-        alpha,
-        sizeWorld,
-        worldX: p.x,
-        worldY: p.y,
-        w: px,
-        h: px,
-        angle
-      });
-    }
-  }
-
-  // Depth sort: дальние рисуем первыми
-  drawList.sort((a, b) => b.depth - a.depth);
-
-  for (const d of drawList) {
-    if (d.kind === 'elephant') {
-      drawShadowAt(d.worldX, d.worldY, d.depth, d.sizeWorld * 0.38);
-      ctx.globalAlpha = d.alpha;
-      ctx.shadowColor = 'rgba(0,0,0,0.25)';
-      ctx.shadowBlur = 12 * d.scale;
-      ctx.shadowOffsetY = 6 * d.scale;
-
-      ctx.save();
-      ctx.translate(d.sx, d.sy);
-      ctx.rotate(d.angle);
-      ctx.drawImage(_elephantSprite, -d.w / 2, -d.h / 2, d.w, d.h);
-      ctx.restore();
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.globalAlpha = 1;
-      continue;
-    }
-
-    if (d.kind === 'food') {
-      drawShadowAt(d.worldX, d.worldY, d.depth, CONFIG.GRID * 0.55);
-      ctx.globalAlpha = d.alpha;
-      ctx.shadowColor = 'rgba(0,0,0,0.22)';
-      ctx.shadowBlur = 10 * d.scale;
-      ctx.shadowOffsetY = 5 * d.scale;
-      ctx.drawImage(_fruitSprite, d.sx - d.w / 2, d.sy - d.h / 2, d.w, d.h);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.globalAlpha = 1;
-      continue;
-    }
-
-    if (d.kind === 'poop') {
-      drawShadowAt(d.worldX, d.worldY, d.depth, CONFIG.GRID * 0.42);
-      ctx.globalAlpha = d.alpha;
-      ctx.shadowColor = 'rgba(0,0,0,0.18)';
-      ctx.shadowBlur = 8 * d.scale;
-      ctx.shadowOffsetY = 4 * d.scale;
-      ctx.drawImage(_poopSprite, d.sx - d.w / 2, d.sy - d.h / 2, d.w, d.h);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.globalAlpha = 1;
-      continue;
-    }
-
-    if (d.kind === 'mahout') {
-      drawShadowAt(d.worldX, d.worldY, d.depth, CONFIG.GRID * 0.40);
-      ctx.globalAlpha = d.alpha;
-      ctx.shadowColor = 'rgba(0,0,0,0.20)';
-      ctx.shadowBlur = 9 * d.scale;
-      ctx.shadowOffsetY = 4 * d.scale;
-      ctx.drawImage(_mahoutSprite, d.sx - d.w / 2, d.sy - d.h / 2, d.w, d.h);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.globalAlpha = 1;
-      continue;
-    }
-  }
+  return;
 }
 
 function drawGround3D() {
-  ensureGroundPattern();
-  const cam = state.camera;
-
-  // Небо/фон
-  ctx.fillStyle = '#0a1624';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Плоскость земли: рисуем полосами по глубине (трапеции-строки)
-  const maxDepth = cam.fogFar;
-  const rows = 42;
-  const step = maxDepth / rows;
-
-  for (let i = rows; i >= 1; i--) {
-    const d0 = (i - 1) * step;
-    const d1 = i * step;
-    const p0 = cam.fov / (cam.fov + Math.max(0.0001, d0));
-    const p1 = cam.fov / (cam.fov + Math.max(0.0001, d1));
-
-    const y0 = cam.horizonY + (cam.bottomY - cam.horizonY) * p0;
-    const y1 = cam.horizonY + (cam.bottomY - cam.horizonY) * p1;
-
-    const hw0 = cam.worldHalfWidth * p0;
-    const hw1 = cam.worldHalfWidth * p1;
-
-    const x0l = canvas.width / 2 - hw0;
-    const x0r = canvas.width / 2 + hw0;
-    const x1l = canvas.width / 2 - hw1;
-    const x1r = canvas.width / 2 + hw1;
-
-    const fogA = getFogAlpha(d1);
-    ctx.globalAlpha = 1 - fogA * 0.70;
-    ctx.fillStyle = _groundPattern;
-
-    ctx.beginPath();
-    ctx.moveTo(x0l, y0);
-    ctx.lineTo(x0r, y0);
-    ctx.lineTo(x1r, y1);
-    ctx.lineTo(x1l, y1);
-    ctx.closePath();
-    ctx.fill();
-
-    // Лёгкая подсветка линий перспективы
-    ctx.globalAlpha = (1 - fogA) * 0.08;
-    ctx.strokeStyle = 'rgba(255,255,255,1)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x1l, y1);
-    ctx.lineTo(x1r, y1);
-    ctx.stroke();
-  }
-
-  ctx.globalAlpha = 1;
-
-  // Туман к горизонту (мягкая маска)
-  const fogGrad = ctx.createLinearGradient(0, cam.horizonY - 10, 0, cam.bottomY);
-  fogGrad.addColorStop(0, 'rgba(10,22,36,0.85)');
-  fogGrad.addColorStop(0.32, 'rgba(10,22,36,0.18)');
-  fogGrad.addColorStop(1, 'rgba(10,22,36,0)');
-  ctx.fillStyle = fogGrad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return;
 }
 
 function ensureBackgroundSnow() {
@@ -775,26 +485,26 @@ function drawBackgroundSnow() {
 
 function drawSnowflakeParticle(p) {
   ctx.save();
-  ctx.translate(p.x, p.y);
-  ctx.rotate(p.rot || 0);
   ctx.globalAlpha = p.a;
   ctx.fillStyle = p.color;
 
   const r = p.r;
+  const x = p.x;
+  const y = p.y;
 
   // Ромбик
   ctx.beginPath();
-  ctx.moveTo(0, -r);
-  ctx.lineTo(r, 0);
-  ctx.lineTo(0, r);
-  ctx.lineTo(-r, 0);
+  ctx.moveTo(x, y - r);
+  ctx.lineTo(x + r, y);
+  ctx.lineTo(x, y + r);
+  ctx.lineTo(x - r, y);
   ctx.closePath();
   ctx.fill();
 
   // Лёгкий "крестик" поверх
   ctx.globalAlpha = p.a * 0.55;
-  ctx.fillRect(-r * 0.15, -r * 1.2, r * 0.3, r * 2.4);
-  ctx.fillRect(-r * 1.2, -r * 0.15, r * 2.4, r * 0.3);
+  ctx.fillRect(x - r * 0.15, y - r * 1.2, r * 0.3, r * 2.4);
+  ctx.fillRect(x - r * 1.2, y - r * 0.15, r * 2.4, r * 0.3);
 
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -830,28 +540,14 @@ function drawFloatTexts() {
 }
 
 function renderFrame() {
-  const shakeActive = state.shakeTimeMs > 0 && state.shakeDurationMs > 0;
-  let ox = 0;
-  let oy = 0;
-  if (shakeActive) {
-    const m = state.shakeMagnitudePx;
-    ox = (Math.random() * 2 - 1) * m;
-    oy = (Math.random() * 2 - 1) * m;
-  }
-
-  ctx.save();
-  ctx.translate(ox, oy);
-
-  updateCameraFollow(state.lastFrameTimeMs ? (state.nowMs - state.lastFrameTimeMs) : 16);
-  drawGround3D();
+  clearCanvas();
   drawBackgroundSnow();
   drawObstacles();
-  drawWorldEntities3D();
+  drawFood();
+  drawSnake();
   drawParticles();
   drawFloatTexts();
   drawFog();
-
-  ctx.restore();
 }
 
 function clearCanvas() {
@@ -868,6 +564,28 @@ function clearCanvas() {
 function drawSnake() {
   const baseSize = CONFIG.GRID - 2;
   const radius = 6;
+
+  // Мягкая зелёная пульсация ("переваривание")
+  if (state.digestGlowMs > 0 && state.snake && state.snake.length > 0) {
+    const head = state.snake[0];
+    const t = state.nowMs || Date.now();
+    const p = Math.max(0, Math.min(1, state.digestGlowMs / 900));
+    const pulse = 0.55 + 0.45 * Math.sin(t * 0.02);
+    const a = 0.14 * p * pulse;
+    const cx = head.x + CONFIG.GRID / 2;
+    const cy = head.y + CONFIG.GRID / 2;
+    const r = CONFIG.GRID * (1.1 + 0.25 * (1 - p));
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(80, 255, 160, 1)';
+    ctx.shadowColor = 'rgba(80, 255, 160, 0.8)';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
 
   // лёгкая тень под всей змейкой (без фильтров)
   ctx.save();
@@ -1005,14 +723,14 @@ function drawSnake() {
 }
 
 function drawFood() {
-  const color = state.foodType === 'bonus' ? COLORS.BONUS_FOOD : COLORS.FOOD;
+  const color = state.foodType === 'bonus' ? COLORS.BONUS_FOOD : '#ff2a3a';
 
   const t = state.nowMs || Date.now();
   const pulse = 1 + 0.14 * Math.sin(t * 0.012);
   const cx = state.food.x + (CONFIG.GRID - 2) / 2;
   const cy = state.food.y + (CONFIG.GRID - 2) / 2;
-  const w = (CONFIG.GRID - 2) * pulse;
-  const h = (CONFIG.GRID - 2) * pulse;
+  const w = (CONFIG.GRID - 2) * 1.05 * pulse;
+  const h = (CONFIG.GRID - 2) * 1.05 * pulse;
 
   // Сияние
   ctx.fillStyle = COLORS.FOOD_GLOW;
@@ -1020,9 +738,23 @@ function drawFood() {
   ctx.fillRect(cx - w / 2 - 4, cy - h / 2 - 4, w + 8, h + 8);
   ctx.globalAlpha = 1.0;
   
-  // Еда
+  // Еда (ягодка)
+  ctx.shadowColor = 'rgba(0,0,0,0.20)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
   ctx.fillStyle = color;
-  ctx.fillRect(cx - w / 2, cy - h / 2, w, h);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 1, w * 0.48, h * 0.48, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Блик
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath();
+  ctx.ellipse(cx - w * 0.16, cy - h * 0.18, w * 0.14, h * 0.20, 0.4, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawObstacles() {
@@ -1049,24 +781,7 @@ function drawObstacles() {
 }
 
 function drawFog() {
-  if (!state.fogRadius) return;
-  
-  // Создаём туман - затемнение краёв
-  const gradient = ctx.createRadialGradient(
-    state.snake[0].x + CONFIG.GRID/2, 
-    state.snake[0].y + CONFIG.GRID/2, 
-    0,
-    state.snake[0].x + CONFIG.GRID/2, 
-    state.snake[0].y + CONFIG.GRID/2, 
-    state.fogRadius
-  );
-  
-  gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  gradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.3)');
-  gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
-  
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return;
 }
 
 function updateScoreDisplay() {

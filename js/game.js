@@ -393,6 +393,9 @@ function advanceSnake() {
     // Визуальные эффекты
     spawnEatEffects(head.x, head.y, basePoints);
 
+    // Мягкая зелёная пульсация после еды
+    state.digestGlowMs = 900;
+
     // Яблоки-валюта
     if (typeof state.sessionApples !== 'number') state.sessionApples = 0;
     if (typeof state.comboApples !== 'number') state.comboApples = 0;
@@ -499,6 +502,10 @@ function updateEffects(dtMs) {
 
   if (state.isPaused) {
     return;
+  }
+
+  if (state.digestGlowMs > 0) {
+    state.digestGlowMs = Math.max(0, state.digestGlowMs - dtMs);
   }
 
   // Навоз по таймеру

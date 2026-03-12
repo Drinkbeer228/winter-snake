@@ -31,6 +31,7 @@ const state = {
   bonusFoodTimeout: null,
   particles: [],
   floatTexts: [],
+  digestGlowMs: 0,
   shakeTimeMs: 0,
   shakeDurationMs: 0,
   shakeMagnitudePx: 0,
@@ -91,6 +92,7 @@ function resetState() {
   state.combo = 0;
   state.particles = [];
   state.floatTexts = [];
+  state.digestGlowMs = 0;
   state.shakeTimeMs = 0;
   state.shakeDurationMs = 0;
   state.shakeMagnitudePx = 0;
