@@ -2,6 +2,30 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+function resizeCanvas() {
+  const area = document.getElementById('play-area');
+  if (!area) return;
+
+  const r = area.getBoundingClientRect();
+  const w = Math.max(0, Math.floor(r.width));
+  const h = Math.max(0, Math.floor(r.height));
+  if (w <= 0 || h <= 0) return;
+
+  const cell = CONFIG.GRID;
+  const size = Math.max(cell * 10, Math.floor(Math.min(w, h) / cell) * cell);
+
+  if (canvas.width !== size || canvas.height !== size) {
+    canvas.width = size;
+    canvas.height = size;
+
+    // Перегенерация фоновых частиц под новый размер
+    if (state) {
+      state.bgSnowNear = [];
+      state.bgSnowFar = [];
+    }
+  }
+}
+
 let _groundPattern = null;
 let _groundPatternKey = '';
 
@@ -594,7 +618,7 @@ function drawSubtitle(text) {
   const padY = 10;
   const maxW = canvas.width - 24;
   const x = canvas.width / 2;
-  const y = canvas.height - 22;
+  const y = canvas.height - 62;
 
   ctx.font = '800 14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
 
@@ -1050,11 +1074,20 @@ function updateScoreDisplay() {
   const scoreNumEl = document.getElementById('score-num');
   const bestNumEl = document.getElementById('best-num');
   const speedNumEl = document.getElementById('speed-num');
+  const pyBadgeEl = document.getElementById('py-badge');
   const speedCps = Math.round(1000 / Math.max(1, state.gameSpeed));
 
   if (scoreNumEl) scoreNumEl.textContent = `${state.score}`;
   if (bestNumEl) bestNumEl.textContent = `${state.highScore}`;
   if (speedNumEl) speedNumEl.textContent = `${speedCps}`;
+
+  if (pyBadgeEl) {
+    if (state.isTutorialMode) {
+      pyBadgeEl.classList.remove('hidden');
+    } else {
+      pyBadgeEl.classList.add('hidden');
+    }
+  }
 
   if (scoreValueEl && !scoreNumEl) scoreValueEl.textContent = `🍎 ${state.score}`;
   if (bestValueEl && !bestNumEl) bestValueEl.textContent = `🏆 ${state.highScore}`;

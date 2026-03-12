@@ -359,6 +359,17 @@ function initGame() {
   initAudio();
   initMusicPlaceholder();
   initSnake();
+
+  if (typeof resizeCanvas === 'function') {
+    resizeCanvas();
+  }
+
+  window.addEventListener('resize', () => {
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+  });
+  window.addEventListener('orientationchange', () => {
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+  });
   
   // Показываем главное меню
   showMainMenu();
@@ -470,10 +481,11 @@ function initGame() {
     showToast('📤 Поделиться', 'Скоро будет!');
   });
   
-  // Скрываем лоадер
-  setTimeout(() => {
-    document.getElementById('loading-screen').classList.add('hidden');
-  }, 1000);
+  // Splash screen скрываем только после полной загрузки
+  window.addEventListener('load', () => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) splash.classList.add('hidden');
+  }, { once: true });
   
   // НЕ запускаем игру автоматически - ждём нажатия "Играть"
 }

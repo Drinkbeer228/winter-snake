@@ -7,82 +7,86 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Загрузочный экран -->
-  <div id="loading-screen" class="loading-screen">
-    <div class="loading-content">
-      <div class="snowflake-loader">☀️</div>
-      <h2>Летний Покой</h2>
-      <p>Загрузка...</p>
-    </div>
-  </div>
-
-  <!-- Главное меню -->
-  <div id="main-menu" class="main-menu">
-    <div class="menu-content">
-      <h1 class="menu-title">Летний Покой</h1>
-      <div class="menu-buttons">
-        <button id="menu-play-btn" class="menu-btn">🎮 Играть</button>
-        <button id="menu-newgame-btn" class="menu-btn hidden">🔄 Новая игра</button>
-        <button id="menu-workshop-btn" class="menu-btn">🧰 Мастерская</button>
-        <button id="menu-skins-btn" class="menu-btn">🎨 Скины</button>
-        <button id="menu-achievements-btn" class="menu-btn">🏆 Достижения</button>
-        <button id="menu-settings-btn" class="menu-btn">⚙️ Настройки</button>
-        <button id="menu-howto-btn" class="menu-btn">❓ Как играть</button>
-      </div>
-      <label class="menu-toggle">
-        <input id="tutorial-toggle" type="checkbox" />
-        <span>Обучение Python</span>
-      </label>
-      <div class="menu-footer">
-        <p>Рекорд: <span id="menu-highscore">0</span></p>
-        <p class="menu-version">v1.0</p>
+  <div id="game-container">
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+      <div class="splash-content">
+        <div class="splash-title">Mahout Leather &amp; Code представляет:</div>
+        <div class="splash-subtitle">Летний Покой</div>
+        <div class="splash-loader" aria-hidden="true"></div>
       </div>
     </div>
-  </div>
 
-  <!-- Снежинки -->
-  <div class="snowflakes" id="snowflakes"></div>
+    <!-- Главное меню -->
+    <div id="main-menu" class="main-menu">
+      <div class="menu-content">
+        <h1 class="menu-title">Летний Покой</h1>
+        <div class="menu-buttons">
+          <button id="menu-play-btn" class="menu-btn">🎮 Играть</button>
+          <button id="menu-newgame-btn" class="menu-btn hidden">🔄 Новая игра</button>
+          <button id="menu-workshop-btn" class="menu-btn">🧰 Мастерская</button>
+          <button id="menu-skins-btn" class="menu-btn">🎨 Скины</button>
+          <button id="menu-achievements-btn" class="menu-btn">🏆 Достижения</button>
+          <button id="menu-settings-btn" class="menu-btn">⚙️ Настройки</button>
+          <button id="menu-howto-btn" class="menu-btn">❓ Как играть</button>
+        </div>
+        <label class="menu-toggle">
+          <input id="tutorial-toggle" type="checkbox" />
+          <span>Обучение Python</span>
+        </label>
+        <div class="menu-footer">
+          <p>Рекорд: <span id="menu-highscore">0</span></p>
+          <p class="menu-version">v1.0</p>
+        </div>
+      </div>
+    </div>
 
-  <!-- Игра -->
-  <div class="game-container">
-    <!-- Кнопки управления (компактный ряд над HUD) -->
+    <!-- Снежинки -->
+    <div class="snowflakes" id="snowflakes"></div>
+
+    <!-- Верхняя панель управления -->
     <div class="controls-top">
       <button id="home-btn">🏠</button>
       <button id="sound-toggle-btn">🔊</button>
       <button id="music-toggle-btn">🎵</button>
     </div>
-    <div class="game-info">
-      <div id="score-board" class="score-board">
-        <div id="score-value" class="stat">
-          <span class="stat-label">Счёт:</span>
-          <span id="score-num" class="stat-num">0</span>
-        </div>
-        <div id="best-value" class="stat">
-          <span class="stat-label">Best:</span>
-          <span id="best-num" class="stat-num">0</span>
-        </div>
-        <div id="speed-value" class="stat">
-          <span class="stat-label">Speed:</span>
-          <span id="speed-num" class="stat-num">0</span>
-        </div>
+
+    <!-- HUD -->
+    <div id="score-board" class="score-board">
+      <div id="score-value" class="stat">
+        <span class="stat-label">Счёт:</span>
+        <span id="score-num" class="stat-num">0</span>
       </div>
-      <div id="combo-indicator"></div>
+      <div id="best-value" class="stat">
+        <span class="stat-label">Best:</span>
+        <span id="best-num" class="stat-num">0</span>
+      </div>
+      <div id="speed-value" class="stat">
+        <span class="stat-label">Speed:</span>
+        <span id="speed-num" class="stat-num">0</span>
+        <span id="py-badge" class="py-badge hidden">[Py]</span>
+      </div>
     </div>
-    <canvas id="gameCanvas" width="400" height="400" ontouchstart=""></canvas>
-  </div>
 
-  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <!-- Игровое поле -->
+    <div id="play-area" class="play-area">
+      <div id="combo-indicator"></div>
+      <canvas id="gameCanvas" width="400" height="400" ontouchstart=""></canvas>
+    </div>
 
-  <!-- Меню паузы -->
-  <div id="pause-menu" class="pause-menu hidden">
-    <div class="pause-content">
-      <h2>⏸️ Пауза</h2>
-      <div class="pause-buttons">
-        <button id="resume-btn" class="pause-btn">▶️ Продолжить</button>
-        <button id="restart-pause-btn" class="pause-btn">🔄 Заново</button>
-        <button id="menu-pause-btn" class="pause-btn">🏠 В меню</button>
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Меню паузы -->
+    <div id="pause-menu" class="pause-menu hidden">
+      <div class="pause-content">
+        <h2>⏸️ Пауза</h2>
+        <div class="pause-buttons">
+          <button id="resume-btn" class="pause-btn">▶️ Продолжить</button>
+          <button id="restart-pause-btn" class="pause-btn">🔄 Заново</button>
+          <button id="menu-pause-btn" class="pause-btn">🏠 В меню</button>
+        </div>
+        <p class="pause-hint">Нажми ESC или Пробел для продолжения</p>
       </div>
-      <p class="pause-hint">Нажми ESC или Пробел для продолжения</p>
     </div>
   </div>
 
