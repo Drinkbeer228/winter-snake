@@ -179,6 +179,7 @@ function advanceSnake() {
       localStorage.setItem('snakeHighScore', state.highScore);
       state.highScoreFxTimeMs = 1000;
       state.brokeRecordThisRun = true;
+      playSound('newrecord');
     }
 
     // Speed curve: ускоряемся на 1.5% за яблоко, но с cap
@@ -377,18 +378,22 @@ function changeDirection(event) {
   // ✅ ИСПРАВЛЕНО: без пробелов и с правильным &&
   if (key === 'ArrowLeft' && !goingRight) {
     state.dx = -CONFIG.GRID;
+    playSound('turn');
     state.dy = 0;
   }
   if (key === 'ArrowUp' && !goingDown) {
-    state.dx = 0;
+    state.dx = 0;;
+    playSound('turn')
     state.dy = -CONFIG.GRID;
   }
   if (key === 'ArrowRight' && !goingLeft) {
     state.dx = CONFIG.GRID;
+    playSound('turn');
     state.dy = 0;
   }
   if (key === 'ArrowDown' && !goingUp) {
-    state.dx = 0;
+    state.dx = 0;;
+    playSound('turn')
     state.dy = CONFIG.GRID;
   }
 }

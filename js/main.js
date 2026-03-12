@@ -87,7 +87,7 @@ function initGame() {
   
   // Кнопки
   document.getElementById('sound-toggle-btn').textContent = audio.enabled ? '🔊' : '🔇';
-  document.getElementById('music-toggle-btn').textContent = '🔇'; // Музыка изначально выключена
+  document.getElementById('music-toggle-btn').textContent = audio.musicEnabled ? '🎵' : '🔇';
   
   // Обработчики клавиатуры
   document.addEventListener('keydown', changeDirection);
