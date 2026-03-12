@@ -65,7 +65,7 @@ function initMenuHandlers() {
   
   if (settingsBtn) {
     settingsBtn.addEventListener('click', () => {
-      alert('⚙️ Настройки:\n🔊 Звук: вкл/выкл кнопкой\n📱 Свайпы: работают\n🎵 Музыка: заглушка');
+      alert('⚙️ Настройки:\n🔊 Звук: вкл/выкл кнопкой\n📱 Свайпы: работают\n🎵 Музыка: вкл/выкл кнопкой');
     });
   }
   
@@ -171,6 +171,10 @@ function initGame() {
   document.getElementById('menu-pause-btn').addEventListener('click', () => {
     hidePauseMenu();
     showMainMenu();
+  });
+
+  document.getElementById('share-btn').addEventListener('click', () => {
+    alert('📤 Поделиться: скоро будет!');
   });
   
   // Скрываем лоадер

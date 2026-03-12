@@ -17,7 +17,10 @@ function checkLevelUp() {
 // Применение настроек уровня
 function applyLevel(levelConfig) {
   // Обновляем скорость
-  state.gameSpeed = levelConfig.speed;
+  state.gameSpeed = Math.max(
+    CONFIG.MIN_SPEED,
+    Math.round(levelConfig.speed * (state.speedFactor || 1))
+  );
   // setInterval больше не используется, скорость применяется в rAF цикле
   
   // Применяем механики
@@ -169,6 +172,22 @@ function advanceSnake() {
     // Очки
     const basePoints = state.foodType === 'bonus' ? 50 : 10;
     state.score += basePoints;
+
+    // High score: обновляем мгновенно
+    if (state.score > state.highScore) {
+      state.highScore = state.score;
+      localStorage.setItem('snakeHighScore', state.highScore);
+      state.highScoreFxTimeMs = 1000;
+      state.brokeRecordThisRun = true;
+    }
+
+    // Speed curve: ускоряемся на 1.5% за яблоко, но с cap
+    state.speedFactor *= 0.985;
+    state.gameSpeed = Math.max(
+      CONFIG.MIN_SPEED,
+      Math.round(state.currentLevelConfig.speed * state.speedFactor)
+    );
+
     updateScoreDisplay();
 
     // Визуальные эффекты
@@ -255,6 +274,14 @@ function updateEffects(dtMs) {
 
   if (state.headPopTimeMs > 0) {
     state.headPopTimeMs = Math.max(0, state.headPopTimeMs - dtMs);
+  }
+
+  if (state.highScoreFxTimeMs > 0) {
+    state.highScoreFxTimeMs = Math.max(0, state.highScoreFxTimeMs - dtMs);
+  }
+
+  if (state.isPaused) {
+    return;
   }
 
   if (state.particles && state.particles.length > 0) {
@@ -404,8 +431,8 @@ function startGameLoop() {
     if (dtMs > 60) dtMs = 60;
 
     // Эффекты обновляем каждый кадр
+    updateEffects(dtMs);
     if (!state.isPaused) {
-      updateEffects(dtMs);
       if (typeof updateBackgroundSnow === 'function') {
         updateBackgroundSnow(dtMs);
       }
@@ -435,13 +462,25 @@ function stopGameLoop() {
 }
 
 function showGameOverModal() {
+  // highScore обновляется мгновенно при наборе очков
   if (state.score > state.highScore) {
     state.highScore = state.score;
     localStorage.setItem('snakeHighScore', state.highScore);
+    state.brokeRecordThisRun = true;
   }
-  
+
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('final-highscore').textContent = state.highScore;
+
+  const newRecordEl = document.getElementById('new-record-text');
+  if (newRecordEl) {
+    if (state.brokeRecordThisRun) {
+      newRecordEl.classList.remove('hidden');
+    } else {
+      newRecordEl.classList.add('hidden');
+    }
+  }
+
   document.getElementById('game-over-modal').classList.remove('hidden');
   
   // Останавливаем игру

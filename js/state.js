@@ -8,6 +8,7 @@ const state = {
   dx: CONFIG.GRID,
   dy: 0,
   gameSpeed: CONFIG.INITIAL_SPEED,
+  speedFactor: 1,
   isPaused: false,
   isRunning: false,
   currentLevel: 1,
@@ -22,6 +23,8 @@ const state = {
   shakeMagnitudePx: 0,
   headPopTimeMs: 0,
   headPopDurationMs: 0,
+  highScoreFxTimeMs: 0,
+  brokeRecordThisRun: false,
   bgSnowNear: [],
   bgSnowFar: [],
   nowMs: 0,
@@ -48,6 +51,7 @@ function initSnake() {
 function resetState() {
   state.score = 0;
   state.gameSpeed = CONFIG.INITIAL_SPEED;
+  state.speedFactor = 1;
   state.isPaused = false;
   state.currentLevel = 1;
   state.currentLevelConfig = LEVELS[0];
@@ -59,6 +63,8 @@ function resetState() {
   state.shakeMagnitudePx = 0;
   state.headPopTimeMs = 0;
   state.headPopDurationMs = 0;
+  state.highScoreFxTimeMs = 0;
+  state.brokeRecordThisRun = false;
   state.nowMs = 0;
   state.lastFrameTimeMs = 0;
   state.accumulatorMs = 0;

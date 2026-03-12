@@ -377,10 +377,16 @@ function drawFog() {
 
 function updateScoreDisplay() {
   const scoreEl = document.getElementById('score-board');
-  scoreEl.textContent = `Счёт: ${state.score} | Уровень: ${state.currentLevel}`;
-  
-  if (state.score > state.highScore) {
-    scoreEl.textContent += ' 🏆';
+  const speedCps = Math.round(1000 / Math.max(1, state.gameSpeed));
+  scoreEl.textContent = `Счёт: ${state.score} | Best: ${state.highScore} | Уровень: ${state.currentLevel} | Speed: ${speedCps}`;
+
+  // Визуальный эффект нового рекорда
+  if (state.highScoreFxTimeMs > 0) {
+    scoreEl.style.color = '#ffd700';
+    scoreEl.style.textShadow = '0 0 10px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4)';
+  } else {
+    scoreEl.style.color = '';
+    scoreEl.style.textShadow = '';
   }
 }
 
