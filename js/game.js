@@ -185,6 +185,59 @@ function resumeGame() {
   startGameLoop();
 }
 
+function triggerTutorialStep(event) {
+  if (!state.isTutorialMode) return;
+
+  if (event === 'apple_eaten') {
+    console.log('Event triggered: Append to list');
+    return;
+  }
+
+  if (event === 'game_start' && state.currentLessonStep === 0) {
+    const key = 'snakeTutorialLesson0Shown';
+    if (localStorage.getItem(key) === '1') {
+      state.currentLessonStep = 1;
+      return;
+    }
+
+    const id = 'tutorial-overlay';
+    let el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = id;
+      el.style.position = 'fixed';
+      el.style.left = '50%';
+      el.style.top = '50%';
+      el.style.transform = 'translate(-50%, -50%)';
+      el.style.zIndex = '1500';
+      el.style.maxWidth = 'min(92vw, 520px)';
+      el.style.padding = '14px 16px';
+      el.style.borderRadius = '16px';
+      el.style.background = 'rgba(18, 28, 16, 0.72)';
+      el.style.border = '1px solid rgba(255, 210, 120, 0.35)';
+      el.style.backdropFilter = 'blur(10px)';
+      el.style.color = 'rgba(255,255,255,0.96)';
+      el.style.fontWeight = '800';
+      el.style.fontSize = '14px';
+      el.style.lineHeight = '1.35';
+      el.style.textAlign = 'center';
+      el.style.textShadow = '0 2px 8px rgba(0,0,0,0.55)';
+      document.body.appendChild(el);
+    }
+
+    el.textContent = 'Привет, Махаут! Давай учить Python. Змейка — это твой список (list).';
+    el.style.display = 'block';
+
+    setTimeout(() => {
+      const e2 = document.getElementById(id);
+      if (e2) e2.style.display = 'none';
+    }, 3000);
+
+    localStorage.setItem(key, '1');
+    state.currentLessonStep = 1;
+  }
+}
+
 // Экран перехода уровня
 function showLevelTransition(level) {
   // Удаляем предыдущее уведомление
@@ -451,6 +504,8 @@ function advanceSnake() {
   }
   
   if (head.x === state.food.x && head.y === state.food.y) {
+    triggerTutorialStep('apple_eaten');
+
     // Очки
     const basePoints = state.foodType === 'bonus' ? 50 : 10;
     state.score += basePoints;
@@ -925,6 +980,8 @@ function resetGame() {
   updateScoreDisplay();
   updateComboDisplay();
   createFood();
+
+  triggerTutorialStep('game_start');
 
   state.isRunning = true;
   startGameLoop();

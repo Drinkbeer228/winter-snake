@@ -474,7 +474,7 @@ function initTouchControls() {
   // 📱 Touch start на всём документе, а не только на canvas
   document.addEventListener('touchstart', (e) => {
     // Игнорируем если тач на кнопках или других элементах управления
-    if (e.target.closest('.controls-top') || 
+    if (e.target.closest('.controls-bottom') || 
         e.target.closest('.pause-menu') || 
         e.target.closest('.modal') ||
         e.target.closest('.main-menu')) {
@@ -492,7 +492,7 @@ function initTouchControls() {
   // 📱 Touch move (критично для iOS!)
   document.addEventListener('touchmove', (e) => {
     // Игнорируем если это свайп по кнопкам
-    if (e.target.closest('.controls-top') || 
+    if (e.target.closest('.controls-bottom') || 
         e.target.closest('.pause-menu') || 
         e.target.closest('.modal') ||
         e.target.closest('.main-menu')) {
@@ -505,7 +505,7 @@ function initTouchControls() {
   // 📱 Touch end
   document.addEventListener('touchend', (e) => {
     // Игнорируем если это клик по кнопкам
-    if (e.target.closest('.controls-top') || 
+    if (e.target.closest('.controls-bottom') || 
         e.target.closest('.pause-menu') || 
         e.target.closest('.modal') ||
         e.target.closest('.main-menu')) {

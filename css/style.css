@@ -12,6 +12,8 @@ body {
   background: linear-gradient(to bottom, #1e3a50, #0a1624);
   font-family: 'Arial', sans-serif;
   overflow: hidden;
+  padding-top: 64px;
+  padding-bottom: 70px;
 }
 
 body::before {
@@ -426,33 +428,35 @@ body::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
   position: relative;
   width: 100%;
   margin-bottom: 4px;
 }
 
 .score-board {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  width: calc(100% - 20px);
+  z-index: 1000;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
   gap: 12px;
-  min-height: 56px;
-  padding: 10px 12px;
+  min-height: 48px;
+  padding: 10px 14px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 0.5px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(8px);
+  background: rgba(18, 28, 16, 0.55);
+  border: 1px solid rgba(255, 210, 120, 0.22);
+  backdrop-filter: blur(10px);
   box-shadow: 0 10px 28px rgba(0,0,0,0.25);
   font-size: 13px;
   line-height: 1;
   white-space: nowrap;
-  padding-right: 120px;
   overflow: hidden;
+  color: rgba(255,255,255,0.96);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.55);
 }
 
 .stat {
@@ -463,7 +467,7 @@ body::after {
 }
 
 .stat-label {
-  color: rgba(255,255,255,0.92);
+  color: rgba(255,255,255,0.96);
   font-weight: 700;
 }
 
@@ -535,12 +539,68 @@ canvas {
 
 /* Кнопки */
 .controls-top {
-  position: absolute;
-  top: 10px;
+  display: none;
+}
+
+.controls-bottom {
+  position: fixed;
+  left: 10px;
   right: 10px;
+  bottom: 10px;
+  z-index: 1000;
   display: flex;
-  gap: 8px;
-  z-index: 100; /* Повыше комбо-индикатора */
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.controls-bottom-left,
+.controls-bottom-right {
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.controls-bottom-right {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 360px) {
+  .controls-bottom {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .controls-bottom-left,
+  .controls-bottom-right {
+    gap: 8px;
+  }
+
+  .controls-bottom button {
+    padding: 10px 10px;
+    border-radius: 12px;
+  }
+}
+
+.controls-bottom button {
+  background: rgba(18, 28, 16, 0.72);
+  border: 1px solid rgba(255, 210, 120, 0.22);
+  color: rgba(255,255,255,0.96);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease;
+  backdrop-filter: blur(8px);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.55);
+}
+
+.controls-bottom button:hover {
+  background: rgba(255, 210, 120, 0.22);
+  transform: translateY(-1px);
 }
 
 .controls-top button {

@@ -3,6 +3,8 @@ const state = {
   snake: [],
   food: { x: 0, y: 0 },
   foodType: 'normal',
+  isTutorialMode: false,
+  currentLessonStep: 0,
   totalApples: parseInt(localStorage.getItem('snakeTotalApples')) || 0,
   sessionApples: 0,
   comboApples: 0,
@@ -89,6 +91,7 @@ function initSnake() {
 
 // === СБРОС СОСТОЯНИЯ ===
 function resetState() {
+  const wasTutorialMode = state.isTutorialMode;
   state.score = 0;
   state.sessionApples = 0;
   state.comboApples = 0;
@@ -126,6 +129,8 @@ function resetState() {
   state.broomSweep = null;
   state.mahouts = [];
   state.fogRadius = null;
+  state.isTutorialMode = wasTutorialMode;
+  state.currentLessonStep = 0;
   if (state.rafId) {
     cancelAnimationFrame(state.rafId);
     state.rafId = null;
