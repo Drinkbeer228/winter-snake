@@ -23,6 +23,7 @@
       <div class="menu-buttons">
         <button id="menu-play-btn" class="menu-btn">🎮 Играть</button>
         <button id="menu-newgame-btn" class="menu-btn hidden">🔄 Новая игра</button>
+        <button id="menu-workshop-btn" class="menu-btn">🧰 Мастерская</button>
         <button id="menu-skins-btn" class="menu-btn">🎨 Скины</button>
         <button id="menu-achievements-btn" class="menu-btn">🏆 Достижения</button>
         <button id="menu-settings-btn" class="menu-btn">⚙️ Настройки</button>
@@ -94,6 +95,40 @@
         <button id="play-again-btn">Играть снова</button>
         <button id="back-to-menu-btn">🏠 В меню</button>
         <button id="share-btn">📤 Поделиться</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Мастерская (магазин) -->
+  <div id="workshop-modal" class="modal hidden">
+    <div class="modal-content workshop-content">
+      <div class="workshop-header">
+        <h2>🧰 Мастерская</h2>
+        <div class="workshop-balance">🍎 <span id="workshop-balance-num">0</span></div>
+      </div>
+
+      <div class="workshop-items">
+        <div class="workshop-item" data-item="engineer">
+          <div class="workshop-item-title">Каска Инженера</div>
+          <div class="workshop-item-desc">50 🍎 — экипировка</div>
+          <button id="buy-engineer-btn" class="workshop-buy-btn">Купить</button>
+        </div>
+
+        <div class="workshop-item" data-item="circus">
+          <div class="workshop-item-title">Цирковая Попона</div>
+          <div class="workshop-item-desc">150 🍎 — экипировка</div>
+          <button id="buy-circus-btn" class="workshop-buy-btn">Купить</button>
+        </div>
+
+        <div class="workshop-item" data-item="mahoutSpeed">
+          <div class="workshop-item-title">Премия Олегу</div>
+          <div class="workshop-item-desc">100 🍎 — махауты бегают быстрее</div>
+          <button id="buy-mahoutspeed-btn" class="workshop-buy-btn">Купить</button>
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button id="workshop-close-btn">Закрыть</button>
       </div>
     </div>
   </div>

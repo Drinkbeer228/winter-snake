@@ -177,6 +177,36 @@ function createFood() {
   }
 }
 
+function bankComboApples(amount) {
+  const a = Math.max(0, Math.floor(amount || 0));
+  if (a <= 0) return;
+  if (typeof state.totalApples !== 'number') state.totalApples = 0;
+  state.totalApples += a;
+  localStorage.setItem('snakeTotalApples', `${state.totalApples}`);
+  if (typeof showBankDeposit === 'function') {
+    showBankDeposit(a);
+  }
+}
+
+function burnComboToBank() {
+  const a = Math.max(0, Math.floor(state.comboApples || 0));
+  if (a > 0) {
+    bankComboApples(a);
+  }
+  state.comboApples = 0;
+}
+
+function bankPartialOnGameOver() {
+  if (!state.combo || state.combo <= 0) return;
+  const a = Math.max(0, Math.floor(state.comboApples || 0));
+  if (a <= 0) return;
+  const keep = Math.max(0, Math.floor(a * 0.2));
+  if (keep > 0) {
+    bankComboApples(keep);
+  }
+  state.comboApples = 0;
+}
+
 function spawnPoopAtTail() {
   if (!state.snake || state.snake.length === 0) return;
   const tail = state.snake[state.snake.length - 1];
@@ -229,7 +259,7 @@ function spawnMahout() {
     x,
     y,
     state: 'toPoop',
-    speed: 110,
+    speed: state.upgradeMahoutSpeed ? 160 : 110,
     target: null
   });
 
@@ -363,6 +393,12 @@ function advanceSnake() {
     // Визуальные эффекты
     spawnEatEffects(head.x, head.y, basePoints);
 
+    // Яблоки-валюта
+    if (typeof state.sessionApples !== 'number') state.sessionApples = 0;
+    if (typeof state.comboApples !== 'number') state.comboApples = 0;
+    state.sessionApples += 1;
+    state.comboApples += 1;
+
     // Навозный цикл: каждые 5 фруктов — минирование хвостом
     if (typeof state.fruitsSincePoop !== 'number') state.fruitsSincePoop = 0;
     state.fruitsSincePoop++;
@@ -380,6 +416,7 @@ function advanceSnake() {
     state.combo++;
     clearTimeout(state.comboTimer);
     state.comboTimer = setTimeout(() => {
+      burnComboToBank();
       state.combo = 0;
       updateComboDisplay();
     }, CONFIG.COMBO_TIMEOUT);
@@ -618,6 +655,7 @@ function stepGameLogic() {
   advanceSnake();
 
   if (didGameEnd()) {
+    bankPartialOnGameOver();
     playSound('gameover');
     showGameOverModal();
     state.isRunning = false;

@@ -3,6 +3,19 @@ const state = {
   snake: [],
   food: { x: 0, y: 0 },
   foodType: 'normal',
+  totalApples: parseInt(localStorage.getItem('snakeTotalApples')) || 0,
+  sessionApples: 0,
+  comboApples: 0,
+  ownedSkins: (() => {
+    try {
+      const raw = localStorage.getItem('snakeOwnedSkins');
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+    return { default: true };
+  })(),
+  currentSkin: localStorage.getItem('snakeCurrentSkin') || 'default',
+  upgradeMahoutSpeed: localStorage.getItem('snakeUpgradeMahoutSpeed') === '1',
   score: 0,
   highScore: parseInt(localStorage.getItem('snakeHighScore')) || 0,
   dx: CONFIG.GRID,
@@ -68,6 +81,8 @@ function initSnake() {
 // === СБРОС СОСТОЯНИЯ ===
 function resetState() {
   state.score = 0;
+  state.sessionApples = 0;
+  state.comboApples = 0;
   state.gameSpeed = CONFIG.INITIAL_SPEED;
   state.speedFactor = 1;
   state.isPaused = false;

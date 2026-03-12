@@ -114,7 +114,8 @@ function ensureGroundPattern() {
 }
 
 function ensureElephantSprite() {
-  const key = 'elephant_v1';
+  const skin = (state && state.currentSkin) ? state.currentSkin : 'default';
+  const key = `elephant_v2_${skin}`;
   if (_elephantSprite && _elephantSpriteKey === key) return;
 
   const s = 96;
@@ -184,6 +185,48 @@ function ensureElephantSprite() {
   g.ellipse(-10, -10, 2.2, 3.0, 0, 0, Math.PI * 2);
   g.ellipse(10, -10, 2.2, 3.0, 0, 0, Math.PI * 2);
   g.fill();
+
+  if (skin === 'engineer') {
+    g.fillStyle = 'rgba(255, 215, 90, 0.95)';
+    g.strokeStyle = 'rgba(120, 80, 30, 0.55)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.ellipse(0, -28, 16, 10, 0, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+
+    g.fillStyle = 'rgba(255, 200, 70, 0.98)';
+    g.strokeStyle = 'rgba(120, 80, 30, 0.55)';
+    g.lineWidth = 1.5;
+    g.beginPath();
+    g.roundRect?.(-12, -23, 24, 9, 6);
+    if (typeof g.roundRect !== 'function') {
+      g.rect(-12, -23, 24, 9);
+    }
+    g.fill();
+    g.stroke();
+
+    g.fillStyle = 'rgba(255, 195, 60, 0.95)';
+    g.beginPath();
+    g.roundRect?.(-18, -18, 36, 5, 6);
+    if (typeof g.roundRect !== 'function') {
+      g.rect(-18, -18, 36, 5);
+    }
+    g.fill();
+  }
+
+  if (skin === 'circus') {
+    g.fillStyle = 'rgba(215, 55, 65, 0.92)';
+    g.strokeStyle = 'rgba(255, 215, 120, 0.78)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.roundRect?.(-24, 2, 48, 22, 10);
+    if (typeof g.roundRect !== 'function') {
+      g.rect(-24, 2, 48, 22);
+    }
+    g.fill();
+    g.stroke();
+  }
 
   _elephantSprite = c;
   _elephantSpriteKey = key;

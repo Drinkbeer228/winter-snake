@@ -31,6 +31,164 @@ function showToast(title, text, durationMs = 2200) {
   }, durationMs);
 }
 
+function showBankDeposit(amount) {
+  const a = Math.max(0, Math.floor(amount || 0));
+  if (a <= 0) return;
+  const host = document.querySelector('.game-info');
+  if (!host) return;
+
+  let el = document.getElementById('bank-deposit');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'bank-deposit';
+    el.className = 'bank-deposit';
+    host.appendChild(el);
+  }
+
+  el.textContent = `+${a} 🍎 в копилку`;
+  el.classList.remove('show');
+  requestAnimationFrame(() => {
+    el.classList.add('show');
+  });
+
+  setTimeout(() => {
+    el.classList.remove('show');
+  }, 900);
+}
+
+function updateWorkshopUi() {
+  const balEl = document.getElementById('workshop-balance-num');
+  if (balEl) balEl.textContent = `${state.totalApples || 0}`;
+
+  const engineerBtn = document.getElementById('buy-engineer-btn');
+  const circusBtn = document.getElementById('buy-circus-btn');
+  const mahoutBtn = document.getElementById('buy-mahoutspeed-btn');
+
+  const ownsEngineer = !!(state.ownedSkins && state.ownedSkins.engineer);
+  const ownsCircus = !!(state.ownedSkins && state.ownedSkins.circus);
+  const engineerEquipped = state.currentSkin === 'engineer';
+  const circusEquipped = state.currentSkin === 'circus';
+
+  if (engineerBtn) {
+    if (!ownsEngineer) engineerBtn.textContent = 'Купить (50 🍎)';
+    else if (engineerEquipped) engineerBtn.textContent = 'Экипировано';
+    else engineerBtn.textContent = 'Экипировать';
+  }
+
+  if (circusBtn) {
+    if (!ownsCircus) circusBtn.textContent = 'Купить (150 🍎)';
+    else if (circusEquipped) circusBtn.textContent = 'Экипировано';
+    else circusBtn.textContent = 'Экипировать';
+  }
+
+  if (mahoutBtn) {
+    mahoutBtn.textContent = state.upgradeMahoutSpeed ? 'Куплено' : 'Купить (100 🍎)';
+  }
+}
+
+function showWorkshopModal() {
+  const modal = document.getElementById('workshop-modal');
+  if (!modal) return;
+  updateWorkshopUi();
+  modal.classList.remove('hidden');
+}
+
+function hideWorkshopModal() {
+  const modal = document.getElementById('workshop-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
+function initWorkshopHandlers() {
+  const openBtn = document.getElementById('menu-workshop-btn');
+  const closeBtn = document.getElementById('workshop-close-btn');
+  const modal = document.getElementById('workshop-modal');
+
+  const engineerBtn = document.getElementById('buy-engineer-btn');
+  const circusBtn = document.getElementById('buy-circus-btn');
+  const mahoutBtn = document.getElementById('buy-mahoutspeed-btn');
+
+  if (openBtn) {
+    openBtn.addEventListener('click', () => {
+      showWorkshopModal();
+    });
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      hideWorkshopModal();
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideWorkshopModal();
+      }
+    });
+  }
+
+  function trySpend(cost) {
+    const c = Math.max(0, Math.floor(cost || 0));
+    if ((state.totalApples || 0) < c) {
+      showToast('🍎 Недостаточно яблок', `Нужно: ${c}, есть: ${state.totalApples || 0}`);
+      return false;
+    }
+    state.totalApples -= c;
+    localStorage.setItem('snakeTotalApples', `${state.totalApples}`);
+    return true;
+  }
+
+  function persistSkins() {
+    try {
+      localStorage.setItem('snakeOwnedSkins', JSON.stringify(state.ownedSkins || { default: true }));
+    } catch (e) {}
+    localStorage.setItem('snakeCurrentSkin', state.currentSkin || 'default');
+  }
+
+  if (engineerBtn) {
+    engineerBtn.addEventListener('click', () => {
+      if (!state.ownedSkins) state.ownedSkins = { default: true };
+      if (!state.ownedSkins.engineer) {
+        if (!trySpend(50)) return;
+        state.ownedSkins.engineer = true;
+        showToast('🧰 Покупка', 'Каска Инженера куплена!');
+      }
+      state.currentSkin = 'engineer';
+      persistSkins();
+      updateWorkshopUi();
+    });
+  }
+
+  if (circusBtn) {
+    circusBtn.addEventListener('click', () => {
+      if (!state.ownedSkins) state.ownedSkins = { default: true };
+      if (!state.ownedSkins.circus) {
+        if (!trySpend(150)) return;
+        state.ownedSkins.circus = true;
+        showToast('🧰 Покупка', 'Цирковая попона куплена!');
+      }
+      state.currentSkin = 'circus';
+      persistSkins();
+      updateWorkshopUi();
+    });
+  }
+
+  if (mahoutBtn) {
+    mahoutBtn.addEventListener('click', () => {
+      if (state.upgradeMahoutSpeed) {
+        updateWorkshopUi();
+        return;
+      }
+      if (!trySpend(100)) return;
+      state.upgradeMahoutSpeed = true;
+      localStorage.setItem('snakeUpgradeMahoutSpeed', '1');
+      showToast('🧹 Апгрейд', 'Махауты теперь бегают быстрее!');
+      updateWorkshopUi();
+    });
+  }
+}
+
 // Показать меню
 function showMainMenu() {
   if (mainMenu) {
@@ -192,6 +350,7 @@ function initGame() {
   // Показываем главное меню
   showMainMenu();
   initMenuHandlers();
+  initWorkshopHandlers();
 
   // Инструкция при первом запуске
   if (localStorage.getItem('snakeHighScore') === null) {
