@@ -1,15 +1,8 @@
 // === СОСТОЯНИЕ ИГРЫ ===
 const state = {
   snake: [],
-  food: { x: 0, y: 0 },
-  foodType: 'normal',
-  isTutorialMode: false,
-  currentLessonStep: 0,
-  tutorialQueue: [],
-  subtitleText: '',
-  subtitleTimeMs: 0,
-  subtitleDurationMs: 0,
-  tutorialSeen: {},
+  item: { x: 0, y: 0, type: ITEM_TYPES.KEY }, // default to key for now
+  inventory: [],
   totalApples: parseInt(localStorage.getItem('snakeTotalApples')) || 0,
   sessionApples: 0,
   comboApples: 0,
@@ -96,7 +89,6 @@ function initSnake() {
 
 // === СБРОС СОСТОЯНИЯ ===
 function resetState() {
-  const wasTutorialMode = state.isTutorialMode;
   state.score = 0;
   state.sessionApples = 0;
   state.comboApples = 0;
@@ -121,26 +113,11 @@ function resetState() {
   state.lastFrameTimeMs = 0;
   state.accumulatorMs = 0;
   state.obstacles = [];
-  state.manure = [];
-  state.poops = state.manure;
-  state.pendingManureSpawns = [];
+  state.traps = [];
+  state.pendingTrapSpawns = [];
   state.slowTimeMs = 0;
   state.slowDurationMs = 0;
-  state.shovel = null;
-  state.shovelBuffTimeMs = 0;
-  state.shovelBuffDurationMs = 0;
-  state.shovelTimerMs = 0;
-  state.nextShovelAtMs = 0;
-  state.broomSweep = null;
-  state.mahouts = [];
-  state.fogRadius = null;
-  state.isTutorialMode = wasTutorialMode;
-  state.currentLessonStep = 0;
-  state.tutorialQueue = [];
-  state.subtitleText = '';
-  state.subtitleTimeMs = 0;
-  state.subtitleDurationMs = 0;
-  state.tutorialSeen = {};
+  state.inventory = [];
   if (state.rafId) {
     cancelAnimationFrame(state.rafId);
     state.rafId = null;

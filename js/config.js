@@ -13,6 +13,14 @@ const CONFIG = {
   MAX_LEVEL: 5
 };
 
+// === ТИПЫ ПРЕДМЕТОВ ===
+const ITEM_TYPES = {
+  APPLE: 'apple',
+  KEY: 'key',
+  BATTERY: 'battery',
+  CHIP: 'chip'
+};
+
 // === ЦВЕТА ===
 const COLORS = {
   SNAKE_HEAD: '#2ecc71',
