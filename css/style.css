@@ -464,7 +464,8 @@ body::after {
 }
 
 .controls-top {
-  width: min(96vw, 560px);
+  width: 96vw;
+  max-width: 560px;
   flex: 0 0 44px;
   display: flex;
   justify-content: space-between;
@@ -480,12 +481,13 @@ body::after {
 }
 
 .score-board {
-  width: min(96vw, 560px);
+  width: 96vw;
+  max-width: 560px;
   flex: 0 0 48px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 10px 14px;
   margin-top: 8px;
   border-radius: 16px;
@@ -506,6 +508,8 @@ body::after {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  justify-content: center;
+  text-align: center;
 }
 
 .stat-label {
@@ -536,16 +540,7 @@ body::after {
 }
 
 .score-board > div {
-  flex: 1 1 0;
-  justify-content: center;
-}
-
-.score-board > div:first-child {
-  justify-content: flex-start;
-}
-
-.score-board > div:last-child {
-  justify-content: flex-end;
+  min-width: 0;
 }
 
 #combo-indicator {
@@ -580,7 +575,8 @@ body::after {
 
 /* Игровое поле */
 .play-area {
-  width: min(96vw, 560px);
+  width: 96vw;
+  max-width: 560px;
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
@@ -615,7 +611,7 @@ body::after {
   background: rgba(18, 28, 16, 0.72);
   border: 1px solid rgba(255, 210, 120, 0.22);
   color: rgba(255,255,255,0.96);
-  padding: 8px 10px;
+  padding: 6px 8px;
   border-radius: 12px;
   cursor: pointer;
   font-size: 16px;

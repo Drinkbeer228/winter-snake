@@ -288,14 +288,28 @@ function initMenuHandlers() {
     tutorialToggle.checked = localStorage.getItem(key) === '1';
     tutorialToggle.addEventListener('change', () => {
       localStorage.setItem(key, tutorialToggle.checked ? '1' : '0');
-      state.isTutorialMode = tutorialToggle.checked;
+      if (window.EducationModule && typeof window.EducationModule.setEnabled === 'function') {
+        window.EducationModule.setEnabled(tutorialToggle.checked);
+      } else {
+        state.isTutorialMode = tutorialToggle.checked;
+      }
     });
+    if (window.EducationModule && typeof window.EducationModule.syncEnabledFromStorage === 'function') {
+      window.EducationModule.syncEnabledFromStorage();
+      tutorialToggle.checked = localStorage.getItem(key) === '1';
+    }
     state.isTutorialMode = tutorialToggle.checked;
   }
 
   if (playBtn) {
     playBtn.addEventListener('click', () => {
-      if (tutorialToggle) state.isTutorialMode = tutorialToggle.checked;
+      if (tutorialToggle) {
+        if (window.EducationModule && typeof window.EducationModule.setEnabled === 'function') {
+          window.EducationModule.setEnabled(tutorialToggle.checked);
+        } else {
+          state.isTutorialMode = tutorialToggle.checked;
+        }
+      }
       const resumable = canResumeRun();
       hideMainMenu();
 
@@ -312,7 +326,13 @@ function initMenuHandlers() {
 
   if (newGameBtn) {
     newGameBtn.addEventListener('click', () => {
-      if (tutorialToggle) state.isTutorialMode = tutorialToggle.checked;
+      if (tutorialToggle) {
+        if (window.EducationModule && typeof window.EducationModule.setEnabled === 'function') {
+          window.EducationModule.setEnabled(tutorialToggle.checked);
+        } else {
+          state.isTutorialMode = tutorialToggle.checked;
+        }
+      }
       hideMainMenu();
       if (typeof resetGame === 'function') {
         resetGame();

@@ -10,7 +10,6 @@ function checkLevelUp() {
     state.currentLevel = newLevel.level;
     state.currentLevelConfig = newLevel;
     applyLevel(newLevel);
-    triggerTutorialEvent('level_up');
     showLevelTransition(newLevel);
   }
 
@@ -193,6 +192,8 @@ function enqueueSubtitle(text, durationMs = 6200) {
   state.tutorialQueue.push({ text, durationMs });
 }
 
+window.enqueueSubtitle = enqueueSubtitle;
+
 function showNextSubtitle() {
   if (state.subtitleTimeMs > 0) return;
   if (!state.tutorialQueue || state.tutorialQueue.length === 0) return;
@@ -206,49 +207,12 @@ function showNextSubtitle() {
 
 function triggerTutorialEvent(event) {
   if (!state.isTutorialMode) return;
-  if (!state.tutorialSeen) state.tutorialSeen = {};
-
-  const once = (key, fn) => {
-    if (state.tutorialSeen[key]) return;
-    state.tutorialSeen[key] = true;
-    fn();
-  };
-
-  if (event === 'game_start') {
-    once('game_start', () => {
-      enqueueSubtitle('Смотри сюда, новичок. Змейка — это список. Голова — индекс [0], хвост — последний элемент. List в деле, погнали!', 6800);
-    });
-  }
-
-  if (event === 'apple_eaten') {
-    enqueueSubtitle('Яблоко поймал? Красава! Это твой .append() — добавил элемент в конец списка. Змейка выросла, метод сработал!', 6200);
-    console.log('Event triggered: Append to list');
-  }
-
-  if (event === 'poop_spawned') {
-    once('poop_spawned', () => {
-      enqueueSubtitle('Опа, мусор в коде! Фильтруй данные, чисти список, иначе Exception прилетит быстрее, чем ты моргнёшь.', 6500);
-    });
-  }
-
-  if (event === 'shovel_picked') {
-    enqueueSubtitle('Олег на связи! Лопата — это твой рефакторинг. Выгребаем мёртвый код, оптимизируем циклы. Чисто и дышится легко.', 6500);
-  }
-
-  if (event === 'combo_started') {
-    once('combo_started', () => {
-      enqueueSubtitle('О, комбо пошло! Это как if в цикле — каждое яблоко проверяет условие. Успел — множитель растёт. Профит жирный.', 6500);
-    });
-  }
-
-  if (event === 'level_up') {
-    enqueueSubtitle('Левел-ап! Как импорт нового модуля — открылась фича, код стал сложнее. Читай доки, тестируй, не бойся ломать.', 6500);
-  }
-
-  if (event === 'game_over') {
-    enqueueSubtitle('Врезался — это Exception. Цикл прервался, break сработал. Лови ошибку, ищи, где накосячил.', 6500);
+  if (window.EducationModule && typeof window.EducationModule.onEvent === 'function') {
+    window.EducationModule.onEvent(event);
   }
 }
+
+window.triggerTutorialEvent = triggerTutorialEvent;
 
 // Экран перехода уровня
 function showLevelTransition(level) {
@@ -272,9 +236,9 @@ function showLevelTransition(level) {
   }, 2000);
   
   // Звук перехода
-  playSound('newrecord');
+  playSound('eat');
 }
-at
+
 function createFood() {
   if (state.bonusFoodTimeout) {
     clearTimeout(state.bonusFoodTimeout);
@@ -484,8 +448,6 @@ function advanceSnake() {
       toY: canvas.height * 0.38
     };
 
-    triggerTutorialEvent('shovel_picked');
-
     playSound('sweep');
 
     state.shovelBuffDurationMs = 4500;
@@ -508,7 +470,7 @@ function advanceSnake() {
   }
   
   if (head.x === state.food.x && head.y === state.food.y) {
-    triggerTutorialEvent('apple_eaten');
+    triggerTutorialEvent('eat');
 
     // Очки
     const basePoints = state.foodType === 'bonus' ? 50 : 10;
@@ -566,9 +528,6 @@ function advanceSnake() {
     
     // Комбо
     state.combo++;
-    if (state.combo === 1) {
-      triggerTutorialEvent('combo_started');
-    }
     clearTimeout(state.comboTimer);
     state.comboTimer = setTimeout(() => {
       burnComboToBank();
@@ -696,7 +655,7 @@ function updateEffects(dtMs) {
     for (let i = state.pendingManureSpawns.length - 1; i >= 0; i--) {
       if (now >= state.pendingManureSpawns[i].dueMs) {
         spawnPoopAtTail();
-        triggerTutorialEvent('poop_spawned');
+        triggerTutorialEvent('poop');
         state.pendingManureSpawns.splice(i, 1);
       }
     }
@@ -884,7 +843,7 @@ function stepGameLogic() {
   if (didGameEnd()) {
     bankPartialOnGameOver();
     playSound('gameover');
-    triggerTutorialEvent('game_over');
+    triggerTutorialEvent('death');
     showGameOverModal();
     state.isRunning = false;
     stopGameLoop();
@@ -991,7 +950,7 @@ function resetGame() {
   updateComboDisplay();
   createFood();
 
-  triggerTutorialEvent('game_start');
+  triggerTutorialEvent('start');
 
   state.isRunning = true;
   startGameLoop();

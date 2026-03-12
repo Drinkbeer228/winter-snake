@@ -611,26 +611,51 @@ function drawSubtitle(text) {
   if (!text) return;
 
   ctx.save();
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
 
   const padX = 14;
   const padY = 10;
-  const maxW = canvas.width - 24;
-  const x = canvas.width / 2;
-  const y = canvas.height - 62;
+  const maxTextW = Math.max(40, Math.floor(canvas.width * 0.80));
+  const minMargin = 12;
+  const xLeft = Math.floor((canvas.width - maxTextW) / 2);
 
-  ctx.font = '800 14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  // safe zone under ads
+  const yBottom = canvas.height - 62;
 
-  // простая подгонка под ширину: если очень длинно — чуть уменьшаем
-  const m = ctx.measureText(text);
-  if (m.width > maxW) {
-    ctx.font = '800 13px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  let fontSize = 14;
+  ctx.font = `800 ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const candidate = line ? `${line} ${w}` : w;
+    if (ctx.measureText(candidate).width <= maxTextW) {
+      line = candidate;
+    } else {
+      if (line) lines.push(line);
+      line = w;
+    }
+  }
+  if (line) lines.push(line);
+
+  // Если всё равно слишком широко (очень длинное слово) — уменьшаем шрифт слегка
+  let widest = 0;
+  for (const ln of lines) {
+    widest = Math.max(widest, ctx.measureText(ln).width);
+  }
+  if (widest > maxTextW) {
+    fontSize = 13;
+    ctx.font = `800 ${fontSize}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
   }
 
-  const m2 = ctx.measureText(text);
-  const boxW = Math.min(maxW, m2.width + padX * 2);
-  const boxH = 34;
+  const lineH = Math.round(fontSize * 1.25);
+  const textH = lines.length * lineH;
+  const boxW = Math.min(canvas.width - minMargin * 2, Math.max(120, maxTextW) + padX * 2);
+  const boxH = textH + padY * 2;
+  const boxX = Math.round((canvas.width - boxW) / 2);
+  const boxY = Math.round(yBottom - boxH / 2);
 
   ctx.globalAlpha = 0.92;
   ctx.fillStyle = 'rgba(18, 28, 16, 0.72)';
@@ -639,7 +664,7 @@ function drawSubtitle(text) {
   ctx.shadowColor = 'rgba(0,0,0,0.55)';
   ctx.shadowBlur = 16;
   ctx.beginPath();
-  ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 14);
+  ctx.roundRect(boxX, boxY, boxW, boxH, 14);
   ctx.fill();
   ctx.shadowBlur = 0;
   ctx.stroke();
@@ -648,7 +673,13 @@ function drawSubtitle(text) {
   ctx.shadowColor = 'rgba(0,0,0,0.55)';
   ctx.shadowBlur = 8;
   ctx.shadowOffsetY = 2;
-  ctx.fillText(text, x, y + 0.5);
+
+  const tx = Math.max(minMargin, boxX + padX);
+  let ty = boxY + padY + lineH / 2;
+  for (const ln of lines) {
+    ctx.fillText(ln, tx, ty);
+    ty += lineH;
+  }
 
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
