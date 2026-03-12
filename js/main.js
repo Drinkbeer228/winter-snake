@@ -138,9 +138,17 @@ function initGame() {
   initTouchControls();
   
   // Кнопки
-  document.getElementById('restart-btn').addEventListener('click', resetGame);
   document.getElementById('sound-toggle-btn').addEventListener('click', toggleSound);
   document.getElementById('music-toggle-btn').addEventListener('click', toggleMusic);
+  document.getElementById('home-btn').addEventListener('click', () => {
+    if (state.isRunning) {
+      // Если игра идёт - открываем меню паузы
+      showPauseMenu();
+    } else {
+      // Если игра не идёт - открываем главное меню
+      showMainMenu();
+    }
+  });
   document.getElementById('play-again-btn').addEventListener('click', () => {
     hideMainMenu();
     resetGame();
@@ -175,13 +183,20 @@ function initGame() {
 
 // 📱 Инициализация тач-управления для iOS
 function initTouchControls() {
-  const canvas = document.getElementById('gameCanvas');
   let touchStartX = 0;
   let touchStartY = 0;
   let touchStartTime = 0;
   
-  // 📱 Touch start
-  canvas.addEventListener('touchstart', (e) => {
+  // 📱 Touch start на всём документе, а не только на canvas
+  document.addEventListener('touchstart', (e) => {
+    // Игнорируем если тач на кнопках или других элементах управления
+    if (e.target.closest('.controls-top') || 
+        e.target.closest('.pause-menu') || 
+        e.target.closest('.modal') ||
+        e.target.closest('.main-menu')) {
+      return;
+    }
+    
     e.preventDefault();
     const touch = e.touches[0];
     touchStartX = touch.clientX;
@@ -191,12 +206,28 @@ function initTouchControls() {
   }, { passive: false });
   
   // 📱 Touch move (критично для iOS!)
-  canvas.addEventListener('touchmove', (e) => {
+  document.addEventListener('touchmove', (e) => {
+    // Игнорируем если это свайп по кнопкам
+    if (e.target.closest('.controls-top') || 
+        e.target.closest('.pause-menu') || 
+        e.target.closest('.modal') ||
+        e.target.closest('.main-menu')) {
+      return;
+    }
+    
     e.preventDefault();
   }, { passive: false });
   
   // 📱 Touch end
-  canvas.addEventListener('touchend', (e) => {
+  document.addEventListener('touchend', (e) => {
+    // Игнорируем если это клик по кнопкам
+    if (e.target.closest('.controls-top') || 
+        e.target.closest('.pause-menu') || 
+        e.target.closest('.modal') ||
+        e.target.closest('.main-menu')) {
+      return;
+    }
+    
     e.preventDefault();
     
     if (!touchStartX || !touchStartY) return;
