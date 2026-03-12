@@ -5,6 +5,11 @@ const state = {
   foodType: 'normal',
   isTutorialMode: false,
   currentLessonStep: 0,
+  tutorialQueue: [],
+  subtitleText: '',
+  subtitleTimeMs: 0,
+  subtitleDurationMs: 0,
+  tutorialSeen: {},
   totalApples: parseInt(localStorage.getItem('snakeTotalApples')) || 0,
   sessionApples: 0,
   comboApples: 0,
@@ -131,6 +136,11 @@ function resetState() {
   state.fogRadius = null;
   state.isTutorialMode = wasTutorialMode;
   state.currentLessonStep = 0;
+  state.tutorialQueue = [];
+  state.subtitleText = '';
+  state.subtitleTimeMs = 0;
+  state.subtitleDurationMs = 0;
+  state.tutorialSeen = {};
   if (state.rafId) {
     cancelAnimationFrame(state.rafId);
     state.rafId = null;

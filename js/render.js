@@ -577,7 +577,61 @@ function renderFrame() {
   drawFloatTexts();
   drawStatusEffectsUI();
   drawBroomSweep();
+  if (state.subtitleTimeMs > 0 && state.subtitleText) {
+    drawSubtitle(state.subtitleText);
+  }
   drawFog();
+}
+
+function drawSubtitle(text) {
+  if (!text) return;
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const padX = 14;
+  const padY = 10;
+  const maxW = canvas.width - 24;
+  const x = canvas.width / 2;
+  const y = canvas.height - 22;
+
+  ctx.font = '800 14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+
+  // простая подгонка под ширину: если очень длинно — чуть уменьшаем
+  const m = ctx.measureText(text);
+  if (m.width > maxW) {
+    ctx.font = '800 13px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+  }
+
+  const m2 = ctx.measureText(text);
+  const boxW = Math.min(maxW, m2.width + padX * 2);
+  const boxH = 34;
+
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = 'rgba(18, 28, 16, 0.72)';
+  ctx.strokeStyle = 'rgba(255, 210, 120, 0.22)';
+  ctx.lineWidth = 1;
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 14);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.96)';
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 2;
+  ctx.fillText(text, x, y + 0.5);
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 function drawManure() {
