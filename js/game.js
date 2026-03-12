@@ -18,10 +18,7 @@ function checkLevelUp() {
 function applyLevel(levelConfig) {
   // Обновляем скорость
   state.gameSpeed = levelConfig.speed;
-  if (state.gameInterval) {
-    clearInterval(state.gameInterval);
-    state.gameInterval = setInterval(gameLoop, state.gameSpeed);
-  }
+  // setInterval больше не используется, скорость применяется в rAF цикле
   
   // Применяем механики
   if (levelConfig.mechanics.obstacles) {
@@ -173,6 +170,9 @@ function advanceSnake() {
     const basePoints = state.foodType === 'bonus' ? 50 : 10;
     state.score += basePoints;
     updateScoreDisplay();
+
+    // Визуальные эффекты
+    spawnEatEffects(head.x, head.y, basePoints);
     
     // Проверка повышения уровня
     checkLevelUp();
@@ -192,6 +192,101 @@ function advanceSnake() {
     createFood();
   } else {
     state.snake.pop();
+  }
+}
+
+function spawnEatEffects(x, y, points) {
+  createSnowBurst(x + CONFIG.GRID / 2, y + CONFIG.GRID / 2);
+  createFloatText(x + CONFIG.GRID / 2, y + CONFIG.GRID / 2, `+${points}`);
+  triggerScreenShake(140, 3);
+  triggerHeadPop(200);
+}
+
+function createSnowBurst(x, y) {
+  const count = 10 + Math.floor(Math.random() * 6);
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 80 + Math.random() * 140;
+    state.particles.push({
+      x,
+      y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: 1.4 + Math.random() * 2.4,
+      a: 1,
+      lifeMs: 520 + Math.random() * 380,
+      maxLifeMs: 0,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() * 2 - 1) * (4 + Math.random() * 6),
+      color: 'rgba(255,255,255,1)'
+    });
+    state.particles[state.particles.length - 1].maxLifeMs = state.particles[state.particles.length - 1].lifeMs;
+  }
+}
+
+function createFloatText(x, y, text) {
+  state.floatTexts.push({
+    x,
+    y,
+    vy: -55,
+    a: 1,
+    lifeMs: 900,
+    maxLifeMs: 900,
+    text,
+    color: 'rgba(255,255,255,1)'
+  });
+}
+
+function triggerScreenShake(durationMs, magnitudePx) {
+  state.shakeDurationMs = durationMs;
+  state.shakeTimeMs = durationMs;
+  state.shakeMagnitudePx = magnitudePx;
+}
+
+function triggerHeadPop(durationMs) {
+  state.headPopDurationMs = durationMs;
+  state.headPopTimeMs = durationMs;
+}
+
+function updateEffects(dtMs) {
+  if (state.shakeTimeMs > 0) {
+    state.shakeTimeMs = Math.max(0, state.shakeTimeMs - dtMs);
+  }
+
+  if (state.headPopTimeMs > 0) {
+    state.headPopTimeMs = Math.max(0, state.headPopTimeMs - dtMs);
+  }
+
+  if (state.particles && state.particles.length > 0) {
+    const dt = dtMs / 1000;
+    const gravity = 140;
+    for (let i = state.particles.length - 1; i >= 0; i--) {
+      const p = state.particles[i];
+      p.vy += gravity * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if (typeof p.rot === 'number') {
+        p.rot += (p.rotSpeed || 0) * dt;
+      }
+      p.lifeMs -= dtMs;
+      p.a = Math.max(0, p.lifeMs / p.maxLifeMs);
+      if (p.lifeMs <= 0) {
+        state.particles.splice(i, 1);
+      }
+    }
+  }
+
+  if (state.floatTexts && state.floatTexts.length > 0) {
+    const dt = dtMs / 1000;
+    for (let i = state.floatTexts.length - 1; i >= 0; i--) {
+      const t = state.floatTexts[i];
+      t.y += t.vy * dt;
+      t.lifeMs -= dtMs;
+      t.a = Math.max(0, t.lifeMs / t.maxLifeMs);
+      if (t.lifeMs <= 0) {
+        state.floatTexts.splice(i, 1);
+      }
+    }
   }
 }
 
@@ -227,23 +322,23 @@ function changeDirection(event) {
   
   // Пауза
   if (key === ' ') {
-    // Если игра на паузе и меню паузы видно - продолжаем
-    if (state.isPaused && !document.getElementById('pause-menu').classList.contains('hidden')) {
-      if (typeof hidePauseMenu === 'function') {
-        hidePauseMenu();
+    const pauseMenu = document.getElementById('pause-menu');
+    const pauseVisible = pauseMenu && !pauseMenu.classList.contains('hidden');
+
+    if (state.isPaused) {
+      state.isPaused = false;
+      if (pauseVisible) {
+        pauseMenu.classList.add('hidden');
       }
+      playSound('pause');
       return;
     }
-    
-    // Если игра не на паузе - открываем меню паузы
-    if (!state.isPaused) {
-      if (typeof togglePauseMenu === 'function') {
-        togglePauseMenu();
-      } else {
-        state.isPaused = !state.isPaused;
-        playSound('pause');
-      }
+
+    state.isPaused = true;
+    if (pauseMenu) {
+      pauseMenu.classList.remove('hidden');
     }
+    playSound('pause');
     return;
   }
   
@@ -271,23 +366,72 @@ function changeDirection(event) {
   }
 }
 
-function gameLoop() {
+function stepGameLogic() {
   if (state.isPaused || !state.isRunning) return;
-  
+
+  advanceSnake();
+
   if (didGameEnd()) {
     playSound('gameover');
     showGameOverModal();
     state.isRunning = false;
+    stopGameLoop();
     return;
   }
-  
-  clearCanvas();
-  drawObstacles();
-  drawFood();
-  advanceSnake();
-  drawSnake();
-  drawFog(); // Туман поверх всего
-  updateComboDisplay();
+}
+
+function startGameLoop() {
+  if (state.rafId) return;
+  state.lastFrameTimeMs = 0;
+  state.accumulatorMs = 0;
+
+  const tick = (ts) => {
+    state.rafId = requestAnimationFrame(tick);
+
+    if (!state.lastFrameTimeMs) {
+      state.lastFrameTimeMs = ts;
+      state.nowMs = ts;
+      renderFrame();
+      updateComboDisplay();
+      return;
+    }
+
+    let dtMs = ts - state.lastFrameTimeMs;
+    state.lastFrameTimeMs = ts;
+    state.nowMs = ts;
+
+    // Защита от вкладка-афк
+    if (dtMs > 60) dtMs = 60;
+
+    // Эффекты обновляем каждый кадр
+    if (!state.isPaused) {
+      updateEffects(dtMs);
+      if (typeof updateBackgroundSnow === 'function') {
+        updateBackgroundSnow(dtMs);
+      }
+    }
+
+    // Логика - фиксированным шагом (по скорости уровня)
+    if (!state.isPaused && state.isRunning) {
+      state.accumulatorMs += dtMs;
+      while (state.accumulatorMs >= state.gameSpeed) {
+        stepGameLogic();
+        state.accumulatorMs -= state.gameSpeed;
+      }
+    }
+
+    renderFrame();
+    updateComboDisplay();
+  };
+
+  state.rafId = requestAnimationFrame(tick);
+}
+
+function stopGameLoop() {
+  if (state.rafId) {
+    cancelAnimationFrame(state.rafId);
+    state.rafId = null;
+  }
 }
 
 function showGameOverModal() {
@@ -302,9 +446,7 @@ function showGameOverModal() {
   
   // Останавливаем игру
   state.isRunning = false;
-  if (state.gameInterval) {
-    clearInterval(state.gameInterval);
-  }
+  stopGameLoop();
 }
 
 function hideGameOverModal() {
@@ -317,11 +459,7 @@ function resetGame() {
   updateScoreDisplay();
   updateComboDisplay();
   createFood();
-  
-  if (state.gameInterval) {
-    clearInterval(state.gameInterval);
-  }
-  
+
   state.isRunning = true;
-  state.gameInterval = setInterval(gameLoop, state.gameSpeed);
+  startGameLoop();
 }

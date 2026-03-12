@@ -16,6 +16,17 @@ const state = {
   comboTimer: null,
   bonusFoodTimeout: null,
   particles: [],
+  floatTexts: [],
+  shakeTimeMs: 0,
+  shakeDurationMs: 0,
+  shakeMagnitudePx: 0,
+  headPopTimeMs: 0,
+  headPopDurationMs: 0,
+  bgSnow: [],
+  nowMs: 0,
+  lastFrameTimeMs: 0,
+  accumulatorMs: 0,
+  rafId: null,
   gameInterval: null,
   obstacles: [], // Препятствия для уровней 3-5
   foodMovementTimer: null, // Движение еды для уровней 2+
@@ -41,8 +52,21 @@ function resetState() {
   state.currentLevelConfig = LEVELS[0];
   state.combo = 0;
   state.particles = [];
+  state.floatTexts = [];
+  state.shakeTimeMs = 0;
+  state.shakeDurationMs = 0;
+  state.shakeMagnitudePx = 0;
+  state.headPopTimeMs = 0;
+  state.headPopDurationMs = 0;
+  state.nowMs = 0;
+  state.lastFrameTimeMs = 0;
+  state.accumulatorMs = 0;
   state.obstacles = [];
   state.fogRadius = null;
+  if (state.rafId) {
+    cancelAnimationFrame(state.rafId);
+    state.rafId = null;
+  }
   
   // Сбрасываем шанс бонусной еды
   CONFIG.BONUS_FOOD_CHANCE = 0.1;
