@@ -34,7 +34,20 @@ const state = {
   gameInterval: null,
   obstacles: [], // Препятствия для уровней 3-5
   foodMovementTimer: null, // Движение еды для уровней 2+
-  fogRadius: null // Радиус видимости для тумана
+  fogRadius: null, // Радиус видимости для тумана
+  camera: {
+    x: 0,
+    y: 0,
+    yaw: 0,
+    fov: 240,
+    back: 130,
+    lerp: 0.14,
+    worldHalfWidth: 260,
+    horizonY: 92,
+    bottomY: 392,
+    fogNear: 140,
+    fogFar: 520
+  }
 };
 
 // === ИНИЦИАЛИЗАЦИЯ ЗМЕИ ===

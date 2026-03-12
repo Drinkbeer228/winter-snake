@@ -2,6 +2,170 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+let _groundPattern = null;
+let _groundPatternKey = '';
+
+function clamp01(v) {
+  return Math.max(0, Math.min(1, v));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function wrapAngleRad(a) {
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+function updateCameraFollow(dtMs) {
+  if (!state.camera || !state.snake || state.snake.length === 0) return;
+
+  const head = state.snake[0];
+  const dirX = Math.sign(state.dx) || 0;
+  const dirY = Math.sign(state.dy) || 1;
+
+  const yawTarget = Math.atan2(dirX, dirY);
+  state.camera.yaw = wrapAngleRad(state.camera.yaw + wrapAngleRad(yawTarget - state.camera.yaw) * 0.12);
+
+  const bx = head.x - dirX * state.camera.back;
+  const by = head.y - dirY * state.camera.back;
+
+  const t = 1 - Math.pow(1 - state.camera.lerp, Math.max(1, dtMs) / 16);
+  state.camera.x = lerp(state.camera.x, bx, t);
+  state.camera.y = lerp(state.camera.y, by, t);
+
+  state.camera.bottomY = canvas.height - 8;
+  state.camera.horizonY = Math.max(42, canvas.height * 0.22);
+}
+
+function project(x, y, z = 0) {
+  const cam = state.camera;
+  const dx = x - cam.x;
+  const dy = y - cam.y;
+  const c = Math.cos(-cam.yaw);
+  const s = Math.sin(-cam.yaw);
+
+  const lateral = dx * c - dy * s;
+  const depth = Math.max(0.0001, dx * s + dy * c);
+
+  const persp = cam.fov / (cam.fov + depth);
+  const sx = canvas.width / 2 + lateral * persp;
+  const groundSy = cam.horizonY + (cam.bottomY - cam.horizonY) * persp;
+  const sy = groundSy - z * persp;
+
+  return { sx, sy, scale: persp, depth };
+}
+
+function getFogAlpha(depth) {
+  const cam = state.camera;
+  const a = (depth - cam.fogNear) / Math.max(1, cam.fogFar - cam.fogNear);
+  return clamp01(a);
+}
+
+function ensureGroundPattern() {
+  const key = 'snow_v1';
+  if (_groundPattern && _groundPatternKey === key) return;
+
+  const p = document.createElement('canvas');
+  p.width = 128;
+  p.height = 128;
+  const g = p.getContext('2d');
+
+  g.fillStyle = 'rgba(255,255,255,0.04)';
+  g.fillRect(0, 0, p.width, p.height);
+
+  // Лёгкие морозные штрихи
+  g.strokeStyle = 'rgba(255,255,255,0.10)';
+  g.lineWidth = 1;
+  for (let i = 0; i < 22; i++) {
+    const x0 = Math.random() * 128;
+    const y0 = Math.random() * 128;
+    const x1 = x0 + (Math.random() * 2 - 1) * 44;
+    const y1 = y0 + (Math.random() * 2 - 1) * 44;
+    g.beginPath();
+    g.moveTo(x0, y0);
+    g.lineTo(x1, y1);
+    g.stroke();
+  }
+
+  // Зерно-снег
+  for (let i = 0; i < 260; i++) {
+    const x = Math.random() * 128;
+    const y = Math.random() * 128;
+    const a = 0.05 + Math.random() * 0.12;
+    g.fillStyle = `rgba(255,255,255,${a})`;
+    g.fillRect(x, y, 1, 1);
+  }
+
+  _groundPattern = ctx.createPattern(p, 'repeat');
+  _groundPatternKey = key;
+}
+
+function drawGround3D() {
+  ensureGroundPattern();
+  const cam = state.camera;
+
+  // Небо/фон
+  ctx.fillStyle = '#0a1624';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Плоскость земли: рисуем полосами по глубине (трапеции-строки)
+  const maxDepth = cam.fogFar;
+  const rows = 42;
+  const step = maxDepth / rows;
+
+  for (let i = rows; i >= 1; i--) {
+    const d0 = (i - 1) * step;
+    const d1 = i * step;
+    const p0 = cam.fov / (cam.fov + Math.max(0.0001, d0));
+    const p1 = cam.fov / (cam.fov + Math.max(0.0001, d1));
+
+    const y0 = cam.horizonY + (cam.bottomY - cam.horizonY) * p0;
+    const y1 = cam.horizonY + (cam.bottomY - cam.horizonY) * p1;
+
+    const hw0 = cam.worldHalfWidth * p0;
+    const hw1 = cam.worldHalfWidth * p1;
+
+    const x0l = canvas.width / 2 - hw0;
+    const x0r = canvas.width / 2 + hw0;
+    const x1l = canvas.width / 2 - hw1;
+    const x1r = canvas.width / 2 + hw1;
+
+    const fogA = getFogAlpha(d1);
+    ctx.globalAlpha = 1 - fogA * 0.70;
+    ctx.fillStyle = _groundPattern;
+
+    ctx.beginPath();
+    ctx.moveTo(x0l, y0);
+    ctx.lineTo(x0r, y0);
+    ctx.lineTo(x1r, y1);
+    ctx.lineTo(x1l, y1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Лёгкая подсветка линий перспективы
+    ctx.globalAlpha = (1 - fogA) * 0.08;
+    ctx.strokeStyle = 'rgba(255,255,255,1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x1l, y1);
+    ctx.lineTo(x1r, y1);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+
+  // Туман к горизонту (мягкая маска)
+  const fogGrad = ctx.createLinearGradient(0, cam.horizonY - 10, 0, cam.bottomY);
+  fogGrad.addColorStop(0, 'rgba(10,22,36,0.85)');
+  fogGrad.addColorStop(0.32, 'rgba(10,22,36,0.18)');
+  fogGrad.addColorStop(1, 'rgba(10,22,36,0)');
+  ctx.fillStyle = fogGrad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
 function ensureBackgroundSnow() {
   const nearOk = state.bgSnowNear && state.bgSnowNear.length > 0;
   const farOk = state.bgSnowFar && state.bgSnowFar.length > 0;
@@ -148,7 +312,8 @@ function renderFrame() {
   ctx.save();
   ctx.translate(ox, oy);
 
-  clearCanvas();
+  updateCameraFollow(state.lastFrameTimeMs ? (state.nowMs - state.lastFrameTimeMs) : 16);
+  drawGround3D();
   drawBackgroundSnow();
   drawObstacles();
   drawFood();
