@@ -87,7 +87,7 @@ function initGame() {
   
   // Кнопки
   document.getElementById('sound-toggle-btn').textContent = audio.enabled ? '🔊' : '🔇';
-  document.getElementById('music-toggle-btn').textContent = '🎵';
+  document.getElementById('music-toggle-btn').textContent = '🔇'; // Музыка изначально выключена
   
   // Обработчики клавиатуры
   document.addEventListener('keydown', changeDirection);
@@ -178,6 +178,7 @@ function initTouchControls() {
   const canvas = document.getElementById('gameCanvas');
   let touchStartX = 0;
   let touchStartY = 0;
+  let touchStartTime = 0;
   
   // 📱 Touch start
   canvas.addEventListener('touchstart', (e) => {
@@ -185,6 +186,7 @@ function initTouchControls() {
     const touch = e.touches[0];
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
+    touchStartTime = Date.now();
     console.log('📱 Touch start:', touchStartX, touchStartY);
   }, { passive: false });
   
@@ -202,14 +204,25 @@ function initTouchControls() {
     const touch = e.changedTouches[0];
     const touchEndX = touch.clientX;
     const touchEndY = touch.clientY;
+    const touchEndTime = Date.now();
     
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
+    const deltaTime = touchEndTime - touchStartTime;
     
-    console.log('📱 Touch end:', deltaX, deltaY);
+    console.log('📱 Touch end:', deltaX, deltaY, 'time:', deltaTime);
     
-    // Определяем направление свайпа
-    const minSwipeDistance = 30; // минимальная дистанция свайпа
+    // Улучшенная чувствительность - меньший порог и учёт скорости
+    const minSwipeDistance = 20; // уменьшили с 30 до 20
+    const maxSwipeTime = 300; // максимальное время свайпа в мс
+    
+    // Проверяем скорость свайпа
+    if (deltaTime > maxSwipeTime) {
+      console.log('📱 Swipe too slow');
+      touchStartX = 0;
+      touchStartY = 0;
+      return;
+    }
     
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
       // Горизонтальный свайп
@@ -218,10 +231,12 @@ function initTouchControls() {
           // Свайп вправо
           state.dx = CONFIG.GRID;
           state.dy = 0;
+          console.log('📱 Swipe right');
         } else if (deltaX < 0 && state.dx !== CONFIG.GRID) {
           // Свайп влево
           state.dx = -CONFIG.GRID;
           state.dy = 0;
+          console.log('📱 Swipe left');
         }
       }
     } else {
@@ -231,10 +246,12 @@ function initTouchControls() {
           // Свайп вниз
           state.dx = 0;
           state.dy = CONFIG.GRID;
+          console.log('📱 Swipe down');
         } else if (deltaY < 0 && state.dy !== CONFIG.GRID) {
           // Свайп вверх
           state.dx = 0;
           state.dy = -CONFIG.GRID;
+          console.log('📱 Swipe up');
         }
       }
     }
@@ -244,26 +261,8 @@ function initTouchControls() {
     touchStartY = 0;
   }, { passive: false });
   
-  // 🎮 Кнопки для мобильных (запасной вариант)
-  document.querySelectorAll('#mobile-controls [data-dir]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const dirs = { 
-        up: [0, -CONFIG.GRID], 
-        down: [0, CONFIG.GRID], 
-        left: [-CONFIG.GRID, 0], 
-        right: [CONFIG.GRID, 0] 
-      };
-      const [newDx, newDy] = dirs[e.target.dataset.dir];
-      
-      // Запрет разворота на 180°
-      if (newDx === -state.dx && newDy === -state.dy) return;
-      
-      state.dx = newDx;
-      state.dy = newDy;
-      
-      console.log('🎮 Button control:', e.target.dataset.dir);
-    });
-  });
+  // 🎮 Кнопки для мобильных удалены - используем только свайпы
+  // Улучшенная отзывчивость свайпов
 }
 
 // Запуск после загрузки DOM

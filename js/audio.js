@@ -88,16 +88,16 @@ function initMusicPlaceholder() {
 
 function toggleMusic() {
   const btn = document.getElementById('music-toggle-btn');
-  const isOn = btn.textContent === '🎵';
+  const isOn = btn.textContent === '🎵'; // Проверяем текущее состояние
   btn.textContent = isOn ? '🔇' : '🎵';
   
   if (audio.bgMusic) {
     if (isOn) {
-      console.log('🎵 Музыка включена');
-      audio.bgMusic.play().catch(e => console.warn('🎵 Ошибка воспроизведения:', e));
-    } else {
       console.log('🔇 Музыка выключена');
       audio.bgMusic.pause();
+    } else {
+      console.log('🎵 Музыка включена');
+      audio.bgMusic.play().catch(e => console.warn('🎵 Ошибка воспроизведения:', e));
     }
   }
 }
