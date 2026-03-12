@@ -264,6 +264,25 @@ body {
   color: white;
   font-size: 18px;
   font-weight: bold;
+  position: relative;
+}
+
+.score-board {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  min-height: 60px;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  padding-right: 120px;
+  overflow: hidden;
+}
+
+.score-board > div {
+  flex: 0 1 auto;
 }
 
 #combo-indicator {
@@ -272,6 +291,11 @@ body {
   border-radius: 20px;
   font-size: 14px;
   animation: pulse 0.5s ease-in-out infinite;
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 @keyframes pulse {

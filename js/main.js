@@ -50,6 +50,33 @@ function hideMainMenu() {
   }
 }
 
+function stopAndResetToMenu() {
+  if (typeof pauseGame === 'function') {
+    pauseGame();
+  } else {
+    state.isPaused = true;
+    state.isRunning = false;
+    if (typeof stopGameLoop === 'function') stopGameLoop();
+  }
+
+  if (typeof hideGameOverModal === 'function') {
+    hideGameOverModal();
+  }
+
+  const pauseMenu = document.getElementById('pause-menu');
+  if (pauseMenu) {
+    pauseMenu.classList.add('hidden');
+  }
+
+  if (typeof resetState === 'function') {
+    resetState();
+  }
+  if (typeof updateScoreDisplay === 'function') updateScoreDisplay();
+  if (typeof updateComboDisplay === 'function') updateComboDisplay();
+
+  showMainMenu();
+}
+
 // Обработчики кнопок меню
 function initMenuHandlers() {
   const playBtn = document.getElementById('menu-play-btn');
@@ -185,8 +212,7 @@ function initGame() {
   document.getElementById('music-toggle-btn').addEventListener('click', toggleMusic);
   document.getElementById('home-btn').addEventListener('click', () => {
     if (state.isRunning) {
-      // Если игра идёт - открываем меню паузы
-      showPauseMenu();
+      stopAndResetToMenu();
     } else {
       // Если игра не идёт - открываем главное меню
       showMainMenu();
@@ -197,8 +223,7 @@ function initGame() {
     resetGame();
   });
   document.getElementById('back-to-menu-btn').addEventListener('click', () => {
-    hideGameOverModal();
-    showMainMenu();
+    stopAndResetToMenu();
   });
   
   // Кнопки меню паузы
@@ -212,8 +237,7 @@ function initGame() {
   });
   
   document.getElementById('menu-pause-btn').addEventListener('click', () => {
-    hidePauseMenu();
-    showMainMenu();
+    stopAndResetToMenu();
   });
 
   document.getElementById('share-btn').addEventListener('click', () => {

@@ -377,27 +377,41 @@ function drawFog() {
 
 function updateScoreDisplay() {
   const scoreEl = document.getElementById('score-board');
+  const scoreValueEl = document.getElementById('score-value');
+  const bestValueEl = document.getElementById('best-value');
+  const speedValueEl = document.getElementById('speed-value');
   const speedCps = Math.round(1000 / Math.max(1, state.gameSpeed));
-  scoreEl.textContent = `Счёт: ${state.score} | Best: ${state.highScore} | Уровень: ${state.currentLevel} | Speed: ${speedCps}`;
+
+  if (scoreValueEl) scoreValueEl.textContent = `Счёт: ${state.score}`;
+  if (bestValueEl) bestValueEl.textContent = `Best: ${state.highScore}`;
+  if (speedValueEl) speedValueEl.textContent = `Speed: ${speedCps}`;
+  if (scoreEl && !scoreValueEl) {
+    scoreEl.textContent = `Счёт: ${state.score} | Best: ${state.highScore} | Speed: ${speedCps}`;
+  }
 
   // Визуальный эффект нового рекорда
   if (state.highScoreFxTimeMs > 0) {
-    scoreEl.style.color = '#ffd700';
-    scoreEl.style.textShadow = '0 0 10px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4)';
+    if (scoreEl) {
+      scoreEl.style.color = '#ffd700';
+      scoreEl.style.textShadow = '0 0 10px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4)';
+    }
   } else {
-    scoreEl.style.color = '';
-    scoreEl.style.textShadow = '';
+    if (scoreEl) {
+      scoreEl.style.color = '';
+      scoreEl.style.textShadow = '';
+    }
   }
 }
 
 function updateComboDisplay() {
   const comboEl = document.getElementById('combo-indicator');
+  if (!comboEl) return;
   
   if (state.combo > 0) {
     const icon = state.combo >= 10 ? '🔥' : state.combo >= 5 ? '⚡' : '✨';
     comboEl.textContent = `${icon} Комбо x${state.combo}`;
-    comboEl.style.display = 'inline-block';
+    comboEl.style.opacity = '1';
   } else {
-    comboEl.style.display = 'none';
+    comboEl.style.opacity = '0';
   }
 }

@@ -111,6 +111,17 @@ function moveFood() {
   }
 }
 
+function isMainMenuActive() {
+  const el = document.getElementById('main-menu');
+  return !!(el && !el.classList.contains('hidden'));
+}
+
+function pauseGame() {
+  state.isPaused = true;
+  state.isRunning = false;
+  stopGameLoop();
+}
+
 // Экран перехода уровня
 function showLevelTransition(level) {
   // Удаляем предыдущее уведомление
@@ -322,6 +333,10 @@ function updateEffects(dtMs) {
 }
 
 function didGameEnd() {
+  if (isMainMenuActive()) {
+    return false;
+  }
+
   // Столкновение с собой
   for (let i = 4; i < state.snake.length; i++) {
     if (state.snake[i].x === state.snake[0].x && state.snake[i].y === state.snake[0].y) {
@@ -403,6 +418,7 @@ function changeDirection(event) {
 
 function stepGameLogic() {
   if (state.isPaused || !state.isRunning) return;
+  if (isMainMenuActive()) return;
 
   advanceSnake();
 
