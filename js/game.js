@@ -188,14 +188,12 @@ function resumeGame() {
 }
 
 function enqueueSubtitle(text, durationMs = 6200) {
-  if (!state.isTutorialMode) return;
   if (!text) return;
   if (!state.tutorialQueue) state.tutorialQueue = [];
   state.tutorialQueue.push({ text, durationMs });
 }
 
 function showNextSubtitle() {
-  if (!state.isTutorialMode) return;
   if (state.subtitleTimeMs > 0) return;
   if (!state.tutorialQueue || state.tutorialQueue.length === 0) return;
 
@@ -276,7 +274,7 @@ function showLevelTransition(level) {
   // Звук перехода
   playSound('newrecord');
 }
-
+at
 function createFood() {
   if (state.bonusFoodTimeout) {
     clearTimeout(state.bonusFoodTimeout);
@@ -523,6 +521,7 @@ function advanceSnake() {
       state.highScoreFxTimeMs = 1000;
       state.brokeRecordThisRun = true;
       playSound('newrecord');
+      enqueueSubtitle(`🏆 Новый рекорд! Best: ${state.highScore}`, 5200);
     }
 
     // Speed curve: ускоряемся на 1.5% за яблоко
@@ -973,15 +972,6 @@ function showGameOverModal() {
 
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('final-highscore').textContent = state.highScore;
-
-  const newRecordEl = document.getElementById('new-record-text');
-  if (newRecordEl) {
-    if (state.brokeRecordThisRun) {
-      newRecordEl.classList.remove('hidden');
-    } else {
-      newRecordEl.classList.add('hidden');
-    }
-  }
 
   document.getElementById('game-over-modal').classList.remove('hidden');
   

@@ -29,6 +29,10 @@
         <button id="menu-settings-btn" class="menu-btn">⚙️ Настройки</button>
         <button id="menu-howto-btn" class="menu-btn">❓ Как играть</button>
       </div>
+      <label class="menu-toggle">
+        <input id="tutorial-toggle" type="checkbox" />
+        <span>Обучение Python</span>
+      </label>
       <div class="menu-footer">
         <p>Рекорд: <span id="menu-highscore">0</span></p>
         <p class="menu-version">v1.0</p>
@@ -41,6 +45,12 @@
 
   <!-- Игра -->
   <div class="game-container">
+    <!-- Кнопки управления (компактный ряд над HUD) -->
+    <div class="controls-top">
+      <button id="home-btn">🏠</button>
+      <button id="sound-toggle-btn">🔊</button>
+      <button id="music-toggle-btn">🎵</button>
+    </div>
     <div class="game-info">
       <div id="score-board" class="score-board">
         <div id="score-value" class="stat">
@@ -58,18 +68,6 @@
       </div>
       <div id="combo-indicator"></div>
     </div>
-    
-    <!-- Кнопки управления по углам снизу -->
-    <div class="controls-bottom">
-      <div class="controls-bottom-left">
-        <button id="home-btn">🏠</button>
-      </div>
-      <div class="controls-bottom-right">
-        <button id="sound-toggle-btn">🔊</button>
-        <button id="music-toggle-btn">�</button>
-      </div>
-    </div>
-    
     <canvas id="gameCanvas" width="400" height="400" ontouchstart=""></canvas>
   </div>
 
@@ -92,7 +90,6 @@
   <div id="game-over-modal" class="modal hidden">
     <div class="modal-content">
       <h2>Игра окончена!</h2>
-      <p id="new-record-text" class="hidden">Новый рекорд!</p>
       <p id="calm-quote" class="calm-quote"></p>
       <p>Финальный счёт: <span id="final-score">0</span></p>
       <p>Рекорд: <span id="final-highscore">0</span></p>
