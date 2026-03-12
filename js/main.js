@@ -4,6 +4,33 @@
 const mainMenu = document.getElementById('main-menu');
 const menuHighscore = document.getElementById('menu-highscore');
 
+function showToast(title, text, durationMs = 2200) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const el = document.createElement('div');
+  el.className = 'toast';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'toast-title';
+  titleEl.textContent = title;
+
+  const textEl = document.createElement('div');
+  textEl.className = 'toast-text';
+  textEl.textContent = text;
+
+  el.appendChild(titleEl);
+  el.appendChild(textEl);
+  container.appendChild(el);
+
+  requestAnimationFrame(() => el.classList.add('show'));
+
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 220);
+  }, durationMs);
+}
+
 // Показать меню
 function showMainMenu() {
   if (mainMenu) {
@@ -47,7 +74,7 @@ function initMenuHandlers() {
       if (typeof showSkinsModal === 'function') {
         showSkinsModal();
       } else {
-        alert('🎨 Скины: скоро будет!');
+        showToast('🎨 Скины', 'Скоро будет!');
       }
     });
   }
@@ -58,20 +85,20 @@ function initMenuHandlers() {
       if (typeof showAchievementsModal === 'function') {
         showAchievementsModal();
       } else {
-        alert('🏆 Достижения: скоро будет!');
+        showToast('🏆 Достижения', 'Скоро будет!');
       }
     });
   }
   
   if (settingsBtn) {
     settingsBtn.addEventListener('click', () => {
-      alert('⚙️ Настройки:\n🔊 Звук: вкл/выкл кнопкой\n📱 Свайпы: работают\n🎵 Музыка: вкл/выкл кнопкой');
+      showToast('⚙️ Настройки', '🔊 Звук: кнопка\n🎵 Музыка: кнопка\n📱 Управление: свайпы/стрелки');
     });
   }
   
   if (howtoBtn) {
     howtoBtn.addEventListener('click', () => {
-      alert('❓ Как играть:\n\n⌨️ Стрелки: движение\n📱 Свайпы: на телефоне\n⏸ Пробел: пауза\n🍎 Еда: +10 очков\n⭐ Золотая: +50 очков\n🏆 Рекорд: сохраняется');
+      showToast('❓ Как играть', '⌨️ Стрелки или 📱 свайпы\n⏸ Пробел: пауза\n🍎 +10 очков, ⭐ +50\n🏆 Рекорд сохраняется', 4200);
     });
   }
 }
@@ -84,6 +111,15 @@ function initGame() {
   // Показываем главное меню
   showMainMenu();
   initMenuHandlers();
+
+  // Инструкция при первом запуске
+  if (localStorage.getItem('snakeHighScore') === null) {
+    showToast(
+      '❄️ Добро пожаловать!',
+      'Стрелки или Свайпы для движения.\nЕшь снежинки, расти и ставь рекорды!',
+      5200
+    );
+  }
   
   // Кнопки
   document.getElementById('sound-toggle-btn').textContent = audio.enabled ? '🔊' : '🔇';
@@ -133,6 +169,13 @@ function initGame() {
     state.isPaused = false;
     playSound('pause');
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && state.isRunning && !state.isPaused) {
+      showPauseMenu();
+      showToast('⏸️ Пауза', 'Игра поставлена на паузу (вкладка скрыта)');
+    }
+  });
   
   // 📱 iOS тач-управление
   initTouchControls();
@@ -174,7 +217,7 @@ function initGame() {
   });
 
   document.getElementById('share-btn').addEventListener('click', () => {
-    alert('📤 Поделиться: скоро будет!');
+    showToast('📤 Поделиться', 'Скоро будет!');
   });
   
   // Скрываем лоадер

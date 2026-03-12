@@ -180,6 +180,9 @@ function advanceSnake() {
       state.highScoreFxTimeMs = 1000;
       state.brokeRecordThisRun = true;
       playSound('newrecord');
+      if (typeof showToast === 'function') {
+        showToast('🏆 Новый рекорд!', `Best: ${state.highScore}`, 2600);
+      }
     }
 
     // Speed curve: ускоряемся на 1.5% за яблоко, но с cap

@@ -14,6 +14,49 @@ body {
   overflow: hidden;
 }
 
+.toast-container {
+  position: fixed;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  width: min(92vw, 520px);
+}
+
+.toast {
+  pointer-events: none;
+  background: rgba(30, 58, 80, 0.92);
+  border: 1px solid rgba(135, 206, 235, 0.35);
+  backdrop-filter: blur(12px);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.toast-text {
+  font-size: 14px;
+  line-height: 1.35;
+  opacity: 0.92;
+}
+
 /* Главное меню */
 .main-menu {
   position: fixed;
@@ -210,6 +253,7 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
 }
 
 .game-info {
@@ -244,7 +288,9 @@ canvas {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   display: block;
-  background: #0a1624;
+  width: min(92vmin, 420px);
+  height: auto;
+  margin: 0 auto;
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
