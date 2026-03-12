@@ -429,6 +429,8 @@ function advanceSnake() {
       showToast('🧹 Олег', 'Олег вышел на уборку!', 1800);
     }
 
+    playSound('sweep');
+
     state.shovelBuffDurationMs = 4500;
     state.shovelBuffTimeMs = state.shovelBuffDurationMs;
     state.score += 25;
@@ -477,6 +479,18 @@ function advanceSnake() {
 
     // Визуальные эффекты
     spawnEatEffects(head.x, head.y, basePoints);
+
+    // Swallow Pulse: волна утолщения по сегментам от головы к хвосту
+    const swallowPerSegMs = 90;
+    const swallowDurationMs = 260;
+    for (let i = 0; i < state.snake.length; i++) {
+      const seg = state.snake[i];
+      if (!seg) continue;
+      seg.swallowDelayMs = i * swallowPerSegMs;
+      seg.swallowTimeMs = swallowDurationMs;
+      seg.swallowDurationMs = swallowDurationMs;
+      seg.swallowAmp = 0.28;
+    }
 
     // Мягкая зелёная пульсация после еды
     state.digestGlowMs = 900;
@@ -652,6 +666,18 @@ function updateEffects(dtMs) {
 
   // Махауты-чистильщики
   updateMahouts(dtMs);
+
+  // Swallow Pulse: обновление таймеров сегментов (лёгкое, без массивов эффектов)
+  if (state.snake && state.snake.length > 0) {
+    for (const seg of state.snake) {
+      if (!seg) continue;
+      if (typeof seg.swallowDelayMs === 'number' && seg.swallowDelayMs > 0) {
+        seg.swallowDelayMs = Math.max(0, seg.swallowDelayMs - dtMs);
+      } else if (typeof seg.swallowTimeMs === 'number' && seg.swallowTimeMs > 0) {
+        seg.swallowTimeMs = Math.max(0, seg.swallowTimeMs - dtMs);
+      }
+    }
+  }
 
   if (state.particles && state.particles.length > 0) {
     const dt = dtMs / 1000;
@@ -853,6 +879,21 @@ function showGameOverModal() {
     state.highScore = state.score;
     localStorage.setItem('snakeHighScore', state.highScore);
     state.brokeRecordThisRun = true;
+  }
+
+  // Цитаты Покоя
+  const quoteEl = document.getElementById('calm-quote');
+  if (quoteEl) {
+    const quotes = [
+      'Порядок по кантику — покой в душе',
+      'Свобода — это когда ты сам выбираешь, где оставить след'
+    ];
+    quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+  }
+
+  // Яндекс Игры: дублируем рекорд в лидерборд
+  if (typeof window.saveHiScore === 'function') {
+    window.saveHiScore(state.highScore);
   }
 
   document.getElementById('final-score').textContent = state.score;

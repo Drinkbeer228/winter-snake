@@ -779,7 +779,19 @@ function drawSnake() {
     const tailT = state.snake.length <= 1 ? 0 : (i / (state.snake.length - 1));
     const tailScale = 1 - 0.45 * tailT;
 
-    const size = isHead ? baseSize * 1.12 * headScale : baseSize * tailScale;
+    let swallowMul = 1;
+    if (part && typeof part.swallowDurationMs === 'number') {
+      if (typeof part.swallowDelayMs === 'number' && part.swallowDelayMs > 0) {
+        swallowMul = 1;
+      } else if (typeof part.swallowTimeMs === 'number' && part.swallowTimeMs > 0 && part.swallowDurationMs > 0) {
+        const p = 1 - (part.swallowTimeMs / part.swallowDurationMs);
+        const amp = typeof part.swallowAmp === 'number' ? part.swallowAmp : 0.25;
+        const bump = Math.sin(p * Math.PI);
+        swallowMul = 1 + amp * bump;
+      }
+    }
+
+    const size = (isHead ? baseSize * 1.12 * headScale : baseSize * tailScale) * swallowMul;
     const cx = part.x + baseSize / 2;
     const cy = part.y + baseSize / 2;
     const x = cx - size / 2 + shadowOffsetX;
@@ -810,7 +822,19 @@ function drawSnake() {
     const tailT = state.snake.length <= 1 ? 0 : (index / (state.snake.length - 1));
     const tailScale = isHead ? 1 : (1 - 0.45 * tailT);
 
-    const size = isHead ? baseSize * 1.12 * scale : baseSize * tailScale;
+    let swallowMul = 1;
+    if (part && typeof part.swallowDurationMs === 'number') {
+      if (typeof part.swallowDelayMs === 'number' && part.swallowDelayMs > 0) {
+        swallowMul = 1;
+      } else if (typeof part.swallowTimeMs === 'number' && part.swallowTimeMs > 0 && part.swallowDurationMs > 0) {
+        const p = 1 - (part.swallowTimeMs / part.swallowDurationMs);
+        const amp = typeof part.swallowAmp === 'number' ? part.swallowAmp : 0.25;
+        const bump = Math.sin(p * Math.PI);
+        swallowMul = 1 + amp * bump;
+      }
+    }
+
+    const size = (isHead ? baseSize * 1.12 * scale : baseSize * tailScale) * swallowMul;
     const cx = part.x + baseSize / 2;
     const cy = part.y + baseSize / 2;
     const x = cx - size / 2;

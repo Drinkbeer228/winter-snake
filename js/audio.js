@@ -123,6 +123,31 @@ function playSound(type) {
         src.stop(t + 0.09);
       }
       break;
+
+    case 'sweep':
+      // Быстрый "swoosh" (заглушка под будущий mp3)
+      {
+        const src = audio.ctx.createBufferSource();
+        src.buffer = noiseBuffer();
+
+        const bp = audio.ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.setValueAtTime(900, t);
+        bp.frequency.exponentialRampToValueAtTime(380, t + 0.16);
+        bp.Q.setValueAtTime(0.6, t);
+
+        const g = makeGain(0.0001);
+        g.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+
+        src.connect(bp);
+        bp.connect(g);
+        g.connect(out);
+
+        src.start(t);
+        src.stop(t + 0.20);
+      }
+      break;
       
     case 'gameover':
       // Глухой, низкий, не пугающий

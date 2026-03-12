@@ -623,6 +623,14 @@ canvas {
   font-size: 18px;
 }
 
+.calm-quote {
+  margin: 10px 0 14px;
+  color: rgba(255, 236, 190, 0.92);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
 .modal-content button {
   background: linear-gradient(45deg, #4fc3f7, #87ceeb);
   border: none;
