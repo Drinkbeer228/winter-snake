@@ -25,14 +25,24 @@ export default class Game {
     this.finalHighScoreEl = document.getElementById('finalHighScore');
     this.restartBtn = document.getElementById('restartBtn');
     
+    // Элемент оверлея паузы
+    this.pauseOverlay = document.getElementById('pauseOverlay');
+    
     // Обработчик кнопки рестарта
     this.restartBtn.addEventListener('click', () => {
       this.reset();
     });
     
-    // Обработчик клавиши R для рестарта
+    // Обработчики клавиш для паузы и рестарта
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyR' && !state.isRunning) {
+      // Пауза
+      if ((e.code === 'Space' || e.code === 'Escape') && state.isRunning) {
+        e.preventDefault();
+        this.togglePause();
+      }
+      
+      // Рестарт
+      if (e.code === 'KeyR' && !state.isRunning && !this.gameOverScreen.classList.contains('hidden')) {
         this.reset();
       }
     });
@@ -48,6 +58,12 @@ export default class Game {
 
   gameLoop() {
     if (!state.isRunning) return;
+    
+    // Проверка паузы
+    if (state.isPaused) {
+      requestAnimationFrame(() => this.gameLoop());
+      return;
+    }
     
     const now = Date.now();
     if (now - this.lastUpdate >= state.gameSpeed) {
@@ -301,6 +317,29 @@ export default class Game {
     setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
   }
 
+  togglePause() {
+    // Нельзя паузить на экране смерти
+    if (!this.gameOverScreen.classList.contains('hidden')) {
+      return;
+    }
+    
+    state.isPaused = !state.isPaused;
+    
+    if (state.isPaused) {
+      this.showPauseOverlay();
+    } else {
+      this.hidePauseOverlay();
+    }
+  }
+
+  showPauseOverlay() {
+    this.pauseOverlay.classList.remove('hidden');
+  }
+
+  hidePauseOverlay() {
+    this.pauseOverlay.classList.add('hidden');
+  }
+
   updateScoreDisplay() {
     document.getElementById('scoreDisplay').textContent = `Счёт: ${state.score}`;
     document.getElementById('highScoreDisplay').textContent = `Рекорд: ${state.highScore}`;
@@ -310,9 +349,13 @@ export default class Game {
     // Скрываем экран смерти
     this.gameOverScreen.classList.add('hidden');
     
+    // Скрываем оверлей паузы
+    this.hidePauseOverlay();
+    
     // Сбрасываем состояние игры
     state.score = 0;
     state.isRunning = true;
+    state.isPaused = false;
     state.isEating = false;
     state.eatTimer = 0;
     state.poop = [];
