@@ -9,6 +9,11 @@ function initGame() {
     return;
   }
 
+  // Устанавливаем реальные размеры канваса
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+
   const game = new Game(canvas);
   
   if (CONFIG.debug) {

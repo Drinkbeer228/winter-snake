@@ -585,10 +585,8 @@ body::after {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   display: block;
-  width: 400px;
-  height: 400px;
-  max-width: 90vw;
-  max-height: 90vh;
+  width: min(400px, 90vw);
+  height: min(400px, 90vw);
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
