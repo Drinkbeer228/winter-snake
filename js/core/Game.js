@@ -28,6 +28,9 @@ export default class Game {
     // Элемент оверлея паузы
     this.pauseOverlay = document.getElementById('pauseOverlay');
     
+    // Элемент индикатора скорости
+    this.speedDisplay = document.getElementById('speedDisplay');
+    
     // Обработчик кнопки рестарта
     this.restartBtn.addEventListener('click', () => {
       this.reset();
@@ -49,6 +52,7 @@ export default class Game {
     
     // Инициализация отображения счёта
     this.updateScoreDisplay();
+    this.updateSpeedDisplay();
   }
 
   start() {
@@ -143,6 +147,7 @@ export default class Game {
         this.snake.grow();
         state.score++;
         this.updateScoreDisplay();
+        this.checkSpeedIncrease();
         
         // Активация анимации роста
         state.isEating = true;
@@ -317,6 +322,37 @@ export default class Game {
     setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
   }
 
+  checkSpeedIncrease() {
+    if (state.score > 0 && state.score % 5 === 0) {
+      const oldSpeed = state.gameSpeed;
+      state.gameSpeed = Math.max(
+        CONFIG.MIN_SPEED,
+        state.gameSpeed * CONFIG.SPEED_MULTIPLIER
+      );
+      
+      // Показываем уведомление только если скорость реально изменилась
+      if (oldSpeed !== state.gameSpeed) {
+        this.showSpeedNotification();
+        this.updateSpeedDisplay();
+      }
+    }
+  }
+
+  showSpeedNotification() {
+    const el = document.createElement('div');
+    el.textContent = 'СКОРОСТЬ!';
+    el.style.cssText = `
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px; color: #FF6B6B;
+      text-shadow: 0 0 10px rgba(255,107,107,0.8);
+      z-index: 300; pointer-events: none;
+      animation: fadeOut 1.5s forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
+  }
+
   togglePause() {
     // Нельзя паузить на экране смерти
     if (!this.gameOverScreen.classList.contains('hidden')) {
@@ -343,6 +379,11 @@ export default class Game {
   updateScoreDisplay() {
     document.getElementById('scoreDisplay').textContent = `Счёт: ${state.score}`;
     document.getElementById('highScoreDisplay').textContent = `Рекорд: ${state.highScore}`;
+  }
+
+  updateSpeedDisplay() {
+    const speedMultiplier = (CONFIG.INITIAL_SPEED / state.gameSpeed).toFixed(1);
+    this.speedDisplay.textContent = `Скорость: ${speedMultiplier}x`;
   }
 
   reset() {
@@ -373,6 +414,7 @@ export default class Game {
     
     // Обновляем счёт
     this.updateScoreDisplay();
+    this.updateSpeedDisplay();
     
     // Спавним еду
     this.spawnFood();

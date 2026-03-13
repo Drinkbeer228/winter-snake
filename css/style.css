@@ -39,6 +39,19 @@ body {
   right: 10px;
 }
 
+#speedDisplay {
+  position: fixed;
+  top: 40px;
+  left: 10px;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
 #gameOverScreen {
   position: fixed;
   top: 0; left: 0;
@@ -389,6 +402,11 @@ body::after {
 @keyframes titlePulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .workshop-content {

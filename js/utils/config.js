@@ -3,6 +3,7 @@ export const CONFIG = {
   CANVAS_SIZE: 400,
   INITIAL_SPEED: 400,
   MIN_SPEED: 50,
+  SPEED_MULTIPLIER: 0.9,  // Каждые 5 очков скорость * 0.9
   soundEnabled: false,
   debug: true
 };
