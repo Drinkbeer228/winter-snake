@@ -11,6 +11,11 @@ export default class Game {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    
+    // Устанавливаем реальные размеры канваса
+    this.canvas.width = CONFIG.CANVAS_SIZE;
+    this.canvas.height = CONFIG.CANVAS_SIZE;
+    
     this.snake = new Snake();
     this.renderer = new Renderer(this.ctx);
     this.lastUpdate = 0;
