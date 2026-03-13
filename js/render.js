@@ -14,9 +14,24 @@ function resizeCanvas() {
   const cell = CONFIG.GRID;
   const size = Math.max(cell * 10, Math.floor(Math.min(w, h) / cell) * cell);
 
-  if (canvas.width !== size || canvas.height !== size) {
-    canvas.width = size;
-    canvas.height = size;
+  // Учитываем devicePixelRatio для Retina экранов
+  const dpr = window.devicePixelRatio || 1;
+  const displaySize = size;
+  const actualSize = size * dpr;
+
+  if (canvas.width !== actualSize || canvas.height !== actualSize) {
+    canvas.width = actualSize;
+    canvas.height = actualSize;
+    
+    // Устанавливаем CSS размеры для отображения
+    canvas.style.width = displaySize + 'px';
+    canvas.style.height = displaySize + 'px';
+    
+    // Масштабируем контекст для правильной отрисовки
+    ctx.scale(dpr, dpr);
+
+    // Принудительная очистка холста
+    ctx.clearRect(0, 0, actualSize, actualSize);
 
     // Перегенерация фоновых частиц под новый размер
     if (state) {
@@ -748,6 +763,9 @@ function drawStatusEffectsUI() {
 }
 
 function clearCanvas() {
+  // Принудительная очистка холста перед отрисовкой
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
   const level = state.currentLevelConfig;
   
   const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
