@@ -63,6 +63,10 @@ export default class Game {
     this.updateSpeedDisplay();
     this.loadAchievements();
     this.loadMuteState();
+    this.resizeCanvas();
+    
+    // Обработчик изменения размера окна
+    window.addEventListener('resize', () => this.resizeCanvas());
   }
 
   start() {
@@ -421,6 +425,22 @@ export default class Game {
       CONFIG.soundEnabled = saved === 'true';
     }
     this.updateMuteButton();
+  }
+
+  resizeCanvas() {
+    const maxSize = Math.min(
+      window.innerWidth * 0.95,
+      window.innerHeight * 0.85
+    );
+    
+    // Округляем до кратного CONFIG.GRID
+    const size = Math.floor(maxSize / CONFIG.GRID) * CONFIG.GRID;
+    
+    this.canvas.style.width = `${size}px`;
+    this.canvas.style.height = `${size}px`;
+    
+    // Внутреннее разрешение остаётся фиксированным
+    // CSS масштабирует отображение
   }
 
   checkSpeedIncrease() {

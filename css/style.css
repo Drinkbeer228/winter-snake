@@ -1,23 +1,23 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom, #0f1c16, #050907);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+  /* Мобильная фиксация */
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: linear-gradient(to bottom, #1e3a50, #0a1624);
-  font-family: 'Arial', sans-serif;
-  overflow: hidden;
-  padding: 0;
-  /* Мобильная фиксация */
-  overscroll-behavior: none; /* Убирает "резиновый" эффект */
-  touch-action: none;        /* Отключает жесты браузера */
-  position: fixed;           /* Фиксирует экран */
-  width: 100%;
 }
 
 #scoreDisplay, #highScoreDisplay {
@@ -744,16 +744,19 @@ body::after {
 
 /* Канвас */
 #gameCanvas {
+  max-width: 95vw;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
   display: block;
-  width: min(400px, 90vw);
-  height: min(400px, 90vw);
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-  cursor: pointer; /* Помогает iOS распознать кликабельный элемент */
+  cursor: pointer;
 }
 
 /* Анимация для визуальных заглушек */
