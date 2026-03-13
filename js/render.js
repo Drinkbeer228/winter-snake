@@ -600,7 +600,6 @@ function renderFrame() {
   clearCanvas();
   drawBackgroundSnow();
   drawObstacles();
-  drawWalls();
   drawTraps();
   drawItem();
   
