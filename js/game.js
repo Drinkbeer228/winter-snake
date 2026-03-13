@@ -40,35 +40,15 @@ function scheduleManureFromTail(delayMs = 2000) {
 }
 
 function scheduleNextShovel() {
-  const minMs = 20000;
-  const maxMs = 30000;
-  state.nextShovelAtMs = state.shovelTimerMs + (minMs + Math.random() * (maxMs - minMs));
+  // removed
 }
 
 function ensureShovelScheduleStarted() {
-  if (typeof state.nextShovelAtMs !== 'number' || state.nextShovelAtMs <= 0) {
-    scheduleNextShovel();
-  }
+  // removed
 }
 
 function spawnShovel() {
-  // 1x1 на сетке
-  const cols = Math.floor(canvas.width / CONFIG.GRID);
-  const rows = Math.floor(canvas.height / CONFIG.GRID);
-
-  for (let tries = 0; tries < 250; tries++) {
-    const x = Math.floor(Math.random() * cols) * CONFIG.GRID;
-    const y = Math.floor(Math.random() * rows) * CONFIG.GRID;
-
-    const occupiedSnake = state.snake && state.snake.some(s => s.x === x && s.y === y);
-    const occupiedFood = state.food && state.food.x === x && state.food.y === y;
-    const occupiedObs = state.obstacles && state.obstacles.some(o => o.x === x && o.y === y);
-    const occupiedPoop = state.poops && state.poops.some(p => p.x === x && p.y === y);
-
-    if (occupiedSnake || occupiedFood || occupiedObs || occupiedPoop) continue;
-    state.shovel = { x, y };
-    return;
-  }
+  // removed
 }
 
 // Применение настроек уровня
@@ -187,31 +167,18 @@ function resumeGame() {
 }
 
 function enqueueSubtitle(text, durationMs = 6200) {
-  if (!text) return;
-  if (!state.tutorialQueue) state.tutorialQueue = [];
-  state.tutorialQueue.push({ text, durationMs });
+  // stub, no subtitles
 }
 
-window.enqueueSubtitle = enqueueSubtitle;
-
 function showNextSubtitle() {
-  if (state.subtitleTimeMs > 0) return;
-  if (!state.tutorialQueue || state.tutorialQueue.length === 0) return;
-
-  const next = state.tutorialQueue.shift();
-  if (!next) return;
-  state.subtitleText = next.text;
-  state.subtitleDurationMs = next.durationMs;
-  state.subtitleTimeMs = next.durationMs;
+  // stub
 }
 
 function triggerTutorialEvent(event) {
-  if (!state.isTutorialMode) return;
-  if (window.EducationModule && typeof window.EducationModule.onEvent === 'function') {
-    window.EducationModule.onEvent(event);
-  }
+  // stub, no tutorial
 }
 
+window.enqueueSubtitle = enqueueSubtitle;
 window.triggerTutorialEvent = triggerTutorialEvent;
 
 // Экран перехода уровня
@@ -239,7 +206,7 @@ function showLevelTransition(level) {
   playSound('eat');
 }
 
-function createFood() {
+function createItem() {
   if (state.bonusFoodTimeout) {
     clearTimeout(state.bonusFoodTimeout);
     state.bonusFoodTimeout = null;
@@ -253,15 +220,24 @@ function createFood() {
     y = Math.floor(Math.random() * (canvas.height / CONFIG.GRID)) * CONFIG.GRID;
     valid = !state.snake.some(part => part.x === x && part.y === y) &&
             !state.obstacles.some(obs => obs.x === x && obs.y === y) &&
-            !(state.poops && state.poops.some(p => p.x === x && p.y === y)) &&
-            !(state.shovel && state.shovel.x === x && state.shovel.y === y);
+            !(state.traps && state.traps.some(t => t.x === x && t.y === y)) &&
+            !(state.walls && state.walls.some(w => w.x === x && w.y === y));
   }
   
-  state.food = { x, y };
-  state.foodType = Math.random() < CONFIG.BONUS_FOOD_CHANCE ? 'bonus' : 'normal';
+  // Random item type: mostly apples, sometimes others
+  const rand = Math.random();
+  let type = ITEM_TYPES.APPLE;
+  if (rand > 0.8) type = ITEM_TYPES.KEY;
+  else if (rand > 0.6) type = ITEM_TYPES.BATTERY;
+  else if (rand > 0.4) type = ITEM_TYPES.CHIP;
   
-  if (state.foodType === 'bonus') {
-    state.bonusFoodTimeout = setTimeout(createFood, CONFIG.BONUS_FOOD_TIMEOUT);
+  state.item = { x, y, type };
+  
+  if (type === ITEM_TYPES.APPLE) {
+    if (Math.random() < CONFIG.BONUS_FOOD_CHANCE) {
+      state.item.bonus = true;
+      state.bonusFoodTimeout = setTimeout(createItem, CONFIG.BONUS_FOOD_TIMEOUT);
+    }
   }
 }
 
@@ -295,15 +271,15 @@ function bankPartialOnGameOver() {
   state.comboApples = 0;
 }
 
-function spawnPoopAtTail() {
+function spawnTrapAtTail() {
   if (!state.snake || state.snake.length === 0) return;
   const tail = state.snake[state.snake.length - 1];
   if (!tail) return;
 
   // Не спавним дубликаты
-  if (state.poops && state.poops.some(p => p.x === tail.x && p.y === tail.y)) return;
+  if (state.traps && state.traps.some(t => t.x === tail.x && t.y === tail.y)) return;
 
-  state.poops.push({
+  state.traps.push({
     x: tail.x,
     y: tail.y,
     createdMs: state.nowMs || Date.now()
@@ -311,119 +287,11 @@ function spawnPoopAtTail() {
 }
 
 function spawnMahout() {
-  // Спавним с края поля (за пределами видимости)
-  const margin = CONFIG.GRID * 2;
-  const side = Math.floor(Math.random() * 4);
-  let x = 0;
-  let y = 0;
-
-  if (side === 0) {
-    x = -margin;
-    y = Math.random() * canvas.height;
-  } else if (side === 1) {
-    x = canvas.width + margin;
-    y = Math.random() * canvas.height;
-  } else if (side === 2) {
-    x = Math.random() * canvas.width;
-    y = -margin;
-  } else {
-    x = Math.random() * canvas.width;
-    y = canvas.height + margin;
-  }
-
-  state.mahouts.push({
-    x,
-    y,
-    state: 'toPoop',
-    speed: state.upgradeMahoutSpeed ? 160 : 110,
-    target: null
-  });
+  // removed
 }
 
 function updateMahouts(dtMs) {
-  if (!state.mahouts) state.mahouts = [];
-  if (!state.poops) state.poops = [];
-
-  // Спавн: если куч > 3 и нет активного махаута
-  if (state.poops.length > 3 && state.mahouts.length === 0) {
-    spawnMahout();
-  }
-
-  const dt = dtMs / 1000;
-  const margin = CONFIG.GRID * 3;
-
-  for (let i = state.mahouts.length - 1; i >= 0; i--) {
-    const m = state.mahouts[i];
-
-    if (m.state === 'toPoop') {
-      if (!m.target || !state.poops.some(p => p.x === m.target.x && p.y === m.target.y)) {
-        // находим ближайшую кучу
-        let best = null;
-        let bestD2 = Infinity;
-        for (const p of state.poops) {
-          const tx = p.x + CONFIG.GRID / 2;
-          const ty = p.y + CONFIG.GRID / 2;
-          const dx = tx - m.x;
-          const dy = ty - m.y;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < bestD2) {
-            bestD2 = d2;
-            best = { x: p.x, y: p.y };
-          }
-        }
-        m.target = best;
-        if (!m.target) {
-          // нет куч — уходим
-          m.state = 'exit';
-          m.exitX = m.x < canvas.width / 2 ? -margin : canvas.width + margin;
-          m.exitY = m.y < canvas.height / 2 ? -margin : canvas.height + margin;
-        }
-      }
-
-      if (m.target) {
-        const tx = m.target.x + CONFIG.GRID / 2;
-        const ty = m.target.y + CONFIG.GRID / 2;
-        const dx = tx - m.x;
-        const dy = ty - m.y;
-        const dist = Math.hypot(dx, dy);
-        const step = m.speed * dt;
-        if (dist <= Math.max(6, step)) {
-          // убираем кучу
-          for (let k = state.poops.length - 1; k >= 0; k--) {
-            if (state.poops[k].x === m.target.x && state.poops[k].y === m.target.y) {
-              state.poops.splice(k, 1);
-              break;
-            }
-          }
-          m.state = 'exit';
-          m.exitX = m.x < canvas.width / 2 ? -margin : canvas.width + margin;
-          m.exitY = m.y < canvas.height / 2 ? -margin : canvas.height + margin;
-          m.target = null;
-        } else {
-          m.x += (dx / dist) * step;
-          m.y += (dy / dist) * step;
-        }
-      }
-    } else if (m.state === 'exit') {
-      const tx = typeof m.exitX === 'number' ? m.exitX : (canvas.width + margin);
-      const ty = typeof m.exitY === 'number' ? m.exitY : (canvas.height + margin);
-      const dx = tx - m.x;
-      const dy = ty - m.y;
-      const dist = Math.hypot(dx, dy);
-      const step = m.speed * dt;
-      if (dist <= Math.max(6, step)) {
-        state.mahouts.splice(i, 1);
-      } else {
-        m.x += (dx / dist) * step;
-        m.y += (dy / dist) * step;
-      }
-    }
-
-    // Деспавн если далеко за полем (страховка)
-    if (m.x < -margin * 2 || m.x > canvas.width + margin * 2 || m.y < -margin * 2 || m.y > canvas.height + margin * 2) {
-      state.mahouts.splice(i, 1);
-    }
-  }
+  // removed
 }
 
 function advanceSnake() {
@@ -434,33 +302,10 @@ function advanceSnake() {
   
   state.snake.unshift(head);
 
-  // Подбор лопаты
-  if (state.shovel && head.x === state.shovel.x && head.y === state.shovel.y) {
-    state.shovel = null;
-    if (!state.poops) state.poops = [];
-
-    state.broomSweep = {
-      timeMs: 520,
-      durationMs: 520,
-      fromX: -60,
-      toX: canvas.width + 60,
-      fromY: canvas.height * 0.62,
-      toY: canvas.height * 0.38
-    };
-
-    playSound('sweep');
-
-    state.shovelBuffDurationMs = 4500;
-    state.shovelBuffTimeMs = state.shovelBuffDurationMs;
-    state.score += 25;
-    updateScoreDisplay();
-    recomputeGameSpeed();
-  }
-
-  // Дебафф от навоза (не конец игры)
-  if (state.poops && state.poops.length > 0) {
-    for (const p of state.poops) {
-      if (head.x === p.x && head.y === p.y) {
+  // Дебафф от traps (не конец игры)
+  if (state.traps && state.traps.length > 0) {
+    for (const t of state.traps) {
+      if (head.x === t.x && head.y === t.y) {
         state.slowDurationMs = 3000;
         state.slowTimeMs = state.slowDurationMs;
         recomputeGameSpeed();
@@ -469,77 +314,83 @@ function advanceSnake() {
     }
   }
   
-  if (head.x === state.food.x && head.y === state.food.y) {
-    triggerTutorialEvent('eat');
+  if (head.x === state.item.x && head.y === state.item.y) {
+    if (state.item.type === ITEM_TYPES.APPLE) {
+      // Очки
+      const basePoints = state.item.bonus ? 50 : 10;
+      state.score += basePoints;
 
-    // Очки
-    const basePoints = state.foodType === 'bonus' ? 50 : 10;
-    state.score += basePoints;
+      // High score: обновляем мгновенно
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('snakeHighScore', state.highScore);
+        state.highScoreFxTimeMs = 1000;
+        state.brokeRecordThisRun = true;
+        playSound('newrecord');
+        createFloatText(head.x + CONFIG.GRID / 2, head.y + CONFIG.GRID / 2, `🏆 Новый рекорд! Best: ${state.highScore}`);
+      }
 
-    // High score: обновляем мгновенно
-    if (state.score > state.highScore) {
-      state.highScore = state.score;
-      localStorage.setItem('snakeHighScore', state.highScore);
-      state.highScoreFxTimeMs = 1000;
-      state.brokeRecordThisRun = true;
-      playSound('newrecord');
-      enqueueSubtitle(`🏆 Новый рекорд! Best: ${state.highScore}`, 5200);
-    }
+      // Speed curve: ускоряемся на 1.5% за яблоко
+      state.speedFactor *= 0.985;
+      state.baseGameSpeed = Math.max(
+        CONFIG.MIN_SPEED,
+        Math.round(state.currentLevelConfig.speed * state.speedFactor)
+      );
+      recomputeGameSpeed();
 
-    // Speed curve: ускоряемся на 1.5% за яблоко
-    state.speedFactor *= 0.985;
-    state.baseGameSpeed = Math.max(
-      CONFIG.MIN_SPEED,
-      Math.round(state.currentLevelConfig.speed * state.speedFactor)
-    );
-    recomputeGameSpeed();
+      updateScoreDisplay();
 
-    updateScoreDisplay();
+      // Визуальные эффекты
+      spawnEatEffects(head.x, head.y, basePoints);
 
-    // Визуальные эффекты
-    spawnEatEffects(head.x, head.y, basePoints);
+      // Swallow Pulse: волна утолщения по сегментам от головы к хвосту
+      const swallowPerSegMs = 90;
+      const swallowDurationMs = 260;
+      for (let i = 0; i < state.snake.length; i++) {
+        const seg = state.snake[i];
+        if (!seg) continue;
+        seg.swallowDelayMs = i * swallowPerSegMs;
+        seg.swallowTimeMs = swallowDurationMs;
+        seg.swallowDurationMs = swallowDurationMs;
+        seg.swallowAmp = 0.28;
+      }
 
-    // Swallow Pulse: волна утолщения по сегментам от головы к хвосту
-    const swallowPerSegMs = 90;
-    const swallowDurationMs = 260;
-    for (let i = 0; i < state.snake.length; i++) {
-      const seg = state.snake[i];
-      if (!seg) continue;
-      seg.swallowDelayMs = i * swallowPerSegMs;
-      seg.swallowTimeMs = swallowDurationMs;
-      seg.swallowDurationMs = swallowDurationMs;
-      seg.swallowAmp = 0.28;
-    }
+      // Мягкая зелёная пульсация после еды
+      state.digestGlowMs = 900;
 
-    // Мягкая зелёная пульсация после еды
-    state.digestGlowMs = 900;
+      // Traps: через 2 секунды после еды появится trap в координатах хвоста
+      scheduleTrapFromTail(2000);
 
-    // Навоз: через 2 секунды после еды появится кучка в координатах хвоста
-    scheduleManureFromTail(2000);
+      // Яблоки-валюта
+      if (typeof state.sessionApples !== 'number') state.sessionApples = 0;
+      if (typeof state.comboApples !== 'number') state.comboApples = 0;
+      state.sessionApples += 1;
+      state.comboApples += 1;
 
-    // Яблоки-валюта
-    if (typeof state.sessionApples !== 'number') state.sessionApples = 0;
-    if (typeof state.comboApples !== 'number') state.comboApples = 0;
-    state.sessionApples += 1;
-    state.comboApples += 1;
-
-    // Проверка повышения уровня
-    checkLevelUp();
-    
-    // Комбо
-    state.combo++;
-    clearTimeout(state.comboTimer);
-    state.comboTimer = setTimeout(() => {
-      burnComboToBank();
-      state.combo = 0;
+      // Проверка повышения уровня
+      checkLevelUp();
+      
+      // Комбо
+      state.combo++;
+      clearTimeout(state.comboTimer);
+      state.comboTimer = setTimeout(() => {
+        burnComboToBank();
+        state.combo = 0;
+        updateComboDisplay();
+      }, CONFIG.COMBO_TIMEOUT);
       updateComboDisplay();
-    }, CONFIG.COMBO_TIMEOUT);
-    updateComboDisplay();
-    
-    // Звук
-    playSound(state.foodType === 'bonus' ? 'eat' : 'eat');
-    
-    createFood();
+      
+      // Звук
+      playSound(state.item.bonus ? 'eat' : 'eat');
+      
+      createItem();
+    } else {
+      // Collect item
+      state.inventory.push(state.item.type);
+      createFloatText(head.x + CONFIG.GRID / 2, head.y + CONFIG.GRID / 2, `${state.item.type} получен!`);
+      playSound('eat');
+      createItem();
+    }
   } else {
     state.snake.pop();
   }
@@ -948,9 +799,7 @@ function resetGame() {
   resetState();
   updateScoreDisplay();
   updateComboDisplay();
-  createFood();
-
-  triggerTutorialEvent('start');
+  createItem();
 
   state.isRunning = true;
   startGameLoop();
