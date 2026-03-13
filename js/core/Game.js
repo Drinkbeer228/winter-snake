@@ -31,9 +31,17 @@ export default class Game {
     // Элемент индикатора скорости
     this.speedDisplay = document.getElementById('speedDisplay');
     
+    // Кнопка Mute
+    this.muteBtn = document.getElementById('muteBtn');
+    
     // Обработчик кнопки рестарта
     this.restartBtn.addEventListener('click', () => {
       this.reset();
+    });
+    
+    // Обработчик кнопки Mute
+    this.muteBtn.addEventListener('click', () => {
+      this.toggleMute();
     });
     
     // Обработчики клавиш для паузы и рестарта
@@ -54,6 +62,7 @@ export default class Game {
     this.updateScoreDisplay();
     this.updateSpeedDisplay();
     this.loadAchievements();
+    this.loadMuteState();
   }
 
   start() {
@@ -390,6 +399,28 @@ export default class Game {
     if (saved) {
       state.achievements = JSON.parse(saved);
     }
+  }
+
+  toggleMute() {
+    CONFIG.soundEnabled = !CONFIG.soundEnabled;
+    this.updateMuteButton();
+    this.saveMuteState();
+  }
+
+  updateMuteButton() {
+    this.muteBtn.textContent = CONFIG.soundEnabled ? '🔊' : '🔇';
+  }
+
+  saveMuteState() {
+    localStorage.setItem('snakeMute', CONFIG.soundEnabled);
+  }
+
+  loadMuteState() {
+    const saved = localStorage.getItem('snakeMute');
+    if (saved !== null) {
+      CONFIG.soundEnabled = saved === 'true';
+    }
+    this.updateMuteButton();
   }
 
   checkSpeedIncrease() {

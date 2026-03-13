@@ -52,6 +52,31 @@ body {
   opacity: 0.8;
 }
 
+.mute-button {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 20px;
+  padding: 8px 12px;
+  cursor: pointer;
+  z-index: 200;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.mute-button:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.05);
+}
+
+.mute-button:active {
+  transform: scale(0.95);
+}
+
 #gameOverScreen {
   position: fixed;
   top: 0; left: 0;
