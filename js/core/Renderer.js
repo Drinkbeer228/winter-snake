@@ -58,12 +58,13 @@ export default class Renderer {
         const centerX = segment.x + CONFIG.GRID/2;
         const centerY = segment.y + CONFIG.GRID/2;
         
+        // Смещение рта в сторону движения
+        const mouthOffset = 4;
+        const mouthX = centerX + (direction.x > 0 ? mouthOffset : direction.x < 0 ? -mouthOffset : 0);
+        const mouthY = centerY + (direction.y > 0 ? mouthOffset : direction.y < 0 ? -mouthOffset : 0);
+        
         this.ctx.beginPath();
-        this.ctx.arc(
-          centerX + (direction.x > 0 ? 4 : direction.x < 0 ? -4 : 0),
-            centerY + (direction.y > 0 ? 4 : direction.y < 0 ? -4 : 0),
-            2, 0, Math.PI * 2
-          );
+        this.ctx.arc(mouthX, mouthY, 2, 0, Math.PI * 2);
         this.ctx.fill();
       }
     });
