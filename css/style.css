@@ -13,6 +13,11 @@ body {
   font-family: 'Arial', sans-serif;
   overflow: hidden;
   padding: 0;
+  /* Мобильная фиксация */
+  overscroll-behavior: none; /* Убирает "резиновый" эффект */
+  touch-action: none;        /* Отключает жесты браузера */
+  position: fixed;           /* Фиксирует экран */
+  width: 100%;
 }
 
 #game-container {
@@ -588,6 +593,12 @@ body::after {
   -webkit-user-select: none;
   user-select: none;
   cursor: pointer; /* Помогает iOS распознать кликабельный элемент */
+}
+
+/* Анимация для визуальных заглушек */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .fancy-btn {

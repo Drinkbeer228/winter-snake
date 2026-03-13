@@ -3,6 +3,8 @@ import { state } from '../utils/state.js';
 import Snake from './Snake.js';
 import Renderer from './Renderer.js';
 import { initInput } from './Input.js';
+import { spawnParticles, updateAndDrawParticles } from '../utils/Particles.js';
+import { playSound } from '../utils/audio.js';
 
 export default class Game {
   constructor(canvas) {
@@ -40,6 +42,24 @@ export default class Game {
       if (head.x === state.food.x && head.y === state.food.y) {
         this.snake.grow();
         state.score++;
+        
+        // Активация анимации роста
+        state.isEating = true;
+        state.eatTimer = 5; // 5 кадров анимации
+        
+        // Звук поедания
+        playSound('eat');
+        
+        // Всплеск частиц при поедании
+        import('../utils/config.js').then(({ COLORS }) => {
+          spawnParticles(
+            state.food.x + CONFIG.GRID/2, 
+            state.food.y + CONFIG.GRID/2, 
+            COLORS.FOOD, 
+            8
+          );
+        });
+        
         this.spawnFood();
       }
     }
@@ -54,8 +74,11 @@ export default class Game {
   render() {
     this.renderer.clear();
     this.renderer.drawGrid();
-    this.renderer.drawSnake(this.snake.segments);
+    this.renderer.drawSnake(this.snake.segments, this.snake.direction);
     this.renderer.drawFood(state.food);
+    
+    // Обновление и отрисовка частиц
+    updateAndDrawParticles(this.ctx);
   }
 
   spawnFood() {

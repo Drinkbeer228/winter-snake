@@ -5,5 +5,7 @@ export const state = {
   highScore: parseInt(localStorage.getItem('snakeHighScore') || 0),
   isRunning: false,
   currentLevel: 1,
-  gameSpeed: 400
+  gameSpeed: 400,
+  isEating: false,  // флаг для анимации
+  eatTimer: 0      // таймер анимации
 };
