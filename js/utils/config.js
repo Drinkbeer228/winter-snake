@@ -12,7 +12,13 @@ export const COLORS = {
   SNAKE_BODY: '#27ae60', 
   FOOD: '#ff3b3b',
   BG_TOP: '#0f1c16',
-  BG_BOTTOM: '#050907'
+  BG_BOTTOM: '#050907',
+  
+  // Новые цвета для будущих механик
+  POOP: '#8B4513',      // коричневый
+  BROOM: '#FFD700',     // золотой
+  OBSTACLE: '#808080',  // серый (камень)
+  HAMMER: '#C0C0C0'     // серебряный
 };
 
 export const LEVELS = []; // Один бесконечный уровень

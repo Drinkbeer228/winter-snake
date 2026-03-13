@@ -14,6 +14,7 @@ export default class Game {
     this.snake = new Snake();
     this.renderer = new Renderer(this.ctx);
     this.lastUpdate = 0;
+    this.frameCount = 0; // для движения еды
   }
 
   start() {
@@ -36,6 +37,14 @@ export default class Game {
 
   update() {
     this.snake.move();
+    this.frameCount++;
+    
+    // Движение еды после 5 очков
+    if (state.score >= 5 && state.food) {
+      if (this.frameCount % 30 === 0) { // каждые 30 кадров
+        this.moveFood();
+      }
+    }
     
     // Проверка еды
     if (state.food) {
@@ -95,6 +104,26 @@ export default class Game {
       seg.x === newFood.x && seg.y === newFood.y));
     
     state.food = newFood;
+  }
+
+  moveFood() {
+    const directions = [
+      {x: CONFIG.GRID, y: 0},
+      {x: -CONFIG.GRID, y: 0},
+      {x: 0, y: CONFIG.GRID},
+      {x: 0, y: -CONFIG.GRID}
+    ];
+    const dir = directions[Math.floor(Math.random() * directions.length)];
+    
+    const newX = state.food.x + dir.x;
+    const newY = state.food.y + dir.y;
+    
+    // Проверка границ
+    if (newX >= 0 && newX < this.canvas.width && 
+        newY >= 0 && newY < this.canvas.height) {
+      state.food.x = newX;
+      state.food.y = newY;
+    }
   }
 
   gameOver() {
