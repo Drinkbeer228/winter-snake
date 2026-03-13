@@ -63,6 +63,19 @@ export default class Game {
       }
     }
     
+    // Спавн препятствий (каждые 10 очков)
+    if (state.score > 0 && state.score % state.obstacleInterval === 0) {
+      const lastObstacleScore = state.obstacles.length * state.obstacleInterval;
+      if (state.score === lastObstacleScore + state.obstacleInterval) {
+        this.spawnObstacle();
+      }
+    }
+    
+    // Проверка коллизий с препятствиями
+    if (this.checkObstacleCollision()) {
+      this.gameOver();
+    }
+    
     // Движение еды после 5 очков
     if (state.score >= 5 && state.food) {
       if (this.frameCount % 30 === 0) { // каждые 30 кадров
@@ -107,6 +120,7 @@ export default class Game {
     this.renderer.clear();
     this.renderer.drawGrid();
     this.renderer.drawPoop(state.poop);
+    this.renderer.drawObstacles(state.obstacles);
     this.renderer.drawBroom(state.broom);
     this.renderer.drawSnake(this.snake.segments, this.snake.direction);
     this.renderer.drawFood(state.food);
@@ -174,6 +188,52 @@ export default class Game {
     state.broom = null;
     state.poop = [];  // очищаем все кучи
     state.score += 1; // бонусное очко
+  }
+
+  spawnObstacle() {
+    const gridSize = CONFIG.GRID;
+    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
+    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
+    
+    const newObstacle = {
+      x: Math.floor(Math.random() * maxX) * gridSize,
+      y: Math.floor(Math.random() * maxY) * gridSize,
+      type: 'stone'
+    };
+    
+    // Проверка: не на змейке, не на еде, не на другой преграде, не на метле
+    if (!this.isPositionOccupied(newObstacle)) {
+      state.obstacles.push(newObstacle);
+    }
+  }
+
+  isPositionOccupied(pos) {
+    // Проверка на змейке
+    if (this.snake.segments.some(seg => seg.x === pos.x && seg.y === pos.y)) {
+      return true;
+    }
+    
+    // Проверка на еде
+    if (state.food && state.food.x === pos.x && state.food.y === pos.y) {
+      return true;
+    }
+    
+    // Проверка на других препятствиях
+    if (state.obstacles.some(obs => obs.x === pos.x && obs.y === pos.y)) {
+      return true;
+    }
+    
+    // Проверка на метле
+    if (state.broom && state.broom.x === pos.x && state.broom.y === pos.y) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  checkObstacleCollision() {
+    const head = this.snake.segments[0];
+    return state.obstacles.some(obs => obs.x === head.x && obs.y === head.y);
   }
 
   gameOver() {

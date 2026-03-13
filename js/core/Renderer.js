@@ -101,4 +101,17 @@ export default class Renderer {
     this.ctx.fillStyle = '#8B4513'; // коричневая ручка
     this.ctx.fillRect(broom.x + CONFIG.GRID/2 - 1, broom.y - 2, 2, 4);
   }
+
+  drawObstacles(obstacles) {
+    if (!obstacles || obstacles.length === 0) return;
+    
+    obstacles.forEach(obs => {
+      this.ctx.fillStyle = COLORS.OBSTACLE;
+      this.ctx.fillRect(obs.x, obs.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
+      
+      // Можно добавить текстуру камня
+      this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      this.ctx.fillRect(obs.x + 2, obs.y + 2, 4, 4);
+    });
+  }
 }
