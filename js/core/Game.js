@@ -18,6 +18,9 @@ export default class Game {
     this.poopTimer = 0;  // для оставления куч
     this.broomTimer = 0; // для спавна метлы
     this.hammerTimer = 0; // для спавна молота
+    
+    // Инициализация отображения счёта
+    this.updateScoreDisplay();
   }
 
   start() {
@@ -105,6 +108,7 @@ export default class Game {
       if (head.x === state.food.x && head.y === state.food.y) {
         this.snake.grow();
         state.score++;
+        this.updateScoreDisplay();
         
         // Активация анимации роста
         state.isEating = true;
@@ -277,6 +281,11 @@ export default class Game {
     
     // Молот используется сразу
     setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
+  }
+
+  updateScoreDisplay() {
+    document.getElementById('scoreDisplay').textContent = `Счёт: ${state.score}`;
+    document.getElementById('highScoreDisplay').textContent = `Рекорд: ${state.highScore}`;
   }
 
   gameOver() {

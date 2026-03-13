@@ -20,6 +20,25 @@ body {
   width: 100%;
 }
 
+#scoreDisplay, #highScoreDisplay {
+  position: fixed;
+  top: 10px;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+  font-size: 18px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  z-index: 100;
+  pointer-events: none;
+}
+
+#scoreDisplay {
+  left: 10px;
+}
+
+#highScoreDisplay {
+  right: 10px;
+}
+
 #game-container {
   position: relative;
   width: 100%;
