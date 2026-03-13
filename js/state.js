@@ -85,6 +85,10 @@ function initSnake() {
   ];
   state.dx = CONFIG.GRID;
   state.dy = 0;
+  
+  console.log("Snake initialized with length:", state.snake.length);
+  console.log("Snake coords:", state.snake);
+  console.log("Canvas size:", canvas ? `${canvas.width}x${canvas.height}` : 'canvas not ready');
 }
 
 // === СБРОС СОСТОЯНИЯ ===
@@ -143,3 +147,6 @@ function resetState() {
   
   initSnake();
 }
+
+// Глобальный доступ для render.js
+window.state = state;
