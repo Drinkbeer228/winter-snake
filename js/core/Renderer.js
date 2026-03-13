@@ -72,8 +72,28 @@ export default class Renderer {
 
   drawFood(food) {
     if (!food) return;
+  
+    // Пульсация (синус от времени)
+    const pulse = Math.sin(Date.now() / 200) * 2;
+    const size = CONFIG.GRID - 2 + pulse;
+    const offset = (CONFIG.GRID - size) / 2;
+  
+    // Основная еда (круглая)
     this.ctx.fillStyle = COLORS.FOOD;
-    this.ctx.fillRect(food.x, food.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
+    this.ctx.beginPath();
+    this.ctx.arc(
+      food.x + CONFIG.GRID/2,
+      food.y + CONFIG.GRID/2,
+      size/2,
+      0, Math.PI * 2
+    );
+    this.ctx.fill();
+  
+    // Свечение
+    this.ctx.shadowColor = COLORS.FOOD;
+    this.ctx.shadowBlur = 10;
+    this.ctx.fill();
+    this.ctx.shadowBlur = 0;  // Сброс для остальных объектов
   }
 
   drawPoop(poopArray) {
