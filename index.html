@@ -2,144 +2,15 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Mahout Leather & Покой</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; }
+    canvas { border: 2px solid #fff; }
+  </style>
 </head>
 <body>
-  <div id="game-container">
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="splash-screen">
-      <div class="splash-content">
-        <div class="splash-title">Mahout Leather & Покой</div>
-        <div class="splash-loader" aria-hidden="true"></div>
-      </div>
-    </div>
-
-    <!-- Главное меню -->
-    <div id="main-menu" class="main-menu">
-      <div class="menu-content">
-        <h1 class="menu-title">Mahout Leather &amp; Покой</h1>
-        <div class="menu-buttons">
-          <button id="menu-play-btn" class="menu-btn fancy-btn">🎮 Играть</button>
-          <button id="menu-newgame-btn" class="menu-btn hidden">🔄 Новая игра</button>
-          <button id="menu-workshop-btn" class="menu-btn">🧰 Мастерская</button>
-          <button id="menu-skins-btn" class="menu-btn">🎨 Скины</button>
-          <button id="menu-achievements-btn" class="menu-btn">🏆 Достижения</button>
-          <button id="menu-settings-btn" class="menu-btn">⚙️ Настройки</button>
-          <button id="menu-howto-btn" class="menu-btn">❓ Как играть</button>
-        </div>
-        <div class="menu-footer">
-          <p>Рекорд: <span id="menu-highscore">0</span></p>
-          <p class="menu-version">v1.0</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Снежинки -->
-    <div class="snowflakes" id="snowflakes"></div>
-
-    <!-- Верхняя панель управления -->
-    <div class="controls-top">
-      <button id="home-btn">🏠</button>
-      <button id="sound-toggle-btn">🔊</button>
-      <button id="music-toggle-btn">🎵</button>
-    </div>
-
-    <!-- HUD -->
-    <div id="score-board" class="score-board">
-      <div id="score-value" class="stat">
-        <span class="stat-label">Счёт:</span>
-        <span id="score-num" class="stat-num">0</span>
-      </div>
-      <div id="best-value" class="stat">
-        <span class="stat-label">Best:</span>
-        <span id="best-num" class="stat-num">0</span>
-      </div>
-      <div id="speed-value" class="stat">
-        <span class="stat-label">Speed:</span>
-        <span id="speed-num" class="stat-num">0</span>
-      </div>
-    </div>
-
-    <!-- Игровое поле -->
-    <div id="play-area" class="play-area">
-      <div id="combo-indicator"></div>
-      <canvas id="gameCanvas" width="400" height="400" ontouchstart=""></canvas>
-    </div>
-
-    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- Меню паузы -->
-    <div id="pause-menu" class="pause-menu hidden">
-      <div class="pause-content">
-        <h2>⏸️ Пауза</h2>
-        <div class="pause-buttons">
-          <button id="resume-btn" class="pause-btn">▶️ Продолжить</button>
-          <button id="restart-pause-btn" class="pause-btn">🔄 Заново</button>
-          <button id="menu-pause-btn" class="pause-btn">🏠 В меню</button>
-        </div>
-        <p class="pause-hint">Нажми ESC или Пробел для продолжения</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Game Over модалка -->
-  <div id="game-over-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>Игра окончена!</h2>
-      <p id="calm-quote" class="calm-quote"></p>
-      <p>Финальный счёт: <span id="final-score">0</span></p>
-      <p>Рекорд: <span id="final-highscore">0</span></p>
-      <div class="modal-buttons">
-        <button id="play-again-btn">Играть снова</button>
-        <button id="back-to-menu-btn">🏠 В меню</button>
-        <button id="share-btn">📤 Поделиться</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Мастерская (магазин) -->
-  <div id="workshop-modal" class="modal hidden">
-    <div class="modal-content workshop-content">
-      <div class="workshop-header">
-        <h2>🧰 Мастерская</h2>
-        <div class="workshop-balance">🍎 <span id="workshop-balance-num">0</span></div>
-      </div>
-
-      <div class="workshop-items">
-        <div class="workshop-item" data-item="engineer">
-          <div class="workshop-item-title">Каска Инженера</div>
-          <div class="workshop-item-desc">50 🍎 — экипировка</div>
-          <button id="buy-engineer-btn" class="workshop-buy-btn">Купить</button>
-        </div>
-
-        <div class="workshop-item" data-item="circus">
-          <div class="workshop-item-title">Цирковая Попона</div>
-          <div class="workshop-item-desc">150 🍎 — экипировка</div>
-          <button id="buy-circus-btn" class="workshop-buy-btn">Купить</button>
-        </div>
-
-        <div class="workshop-item" data-item="mahoutSpeed">
-          <div class="workshop-item-title">Премия Олегу</div>
-          <div class="workshop-item-desc">100 🍎 — махауты бегают быстрее</div>
-          <button id="buy-mahoutspeed-btn" class="workshop-buy-btn">Купить</button>
-        </div>
-      </div>
-
-      <div class="modal-buttons">
-        <button id="workshop-close-btn">Закрыть</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Подключаем модули ПОСЛЕДОВАТЕЛЬНО -->
-  <script src="js/config.js?v=1.1"></script>
-  <script src="js/state.js?v=1.1"></script>
-  <script src="js/audio.js?v=1.1"></script>
-  <script src="js/render.js?v=1.1"></script>
-  <script src="js/game.js?v=1.1"></script>
-  <script src="js/yandex_sdk.js?v=1.1"></script>
-  <script src="js/main.js?v=1.1"></script>
+  <canvas id="gameCanvas"></canvas>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

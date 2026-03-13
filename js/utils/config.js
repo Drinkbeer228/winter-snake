@@ -1,0 +1,18 @@
+export const CONFIG = {
+  GRID: 20,
+  CANVAS_SIZE: 400,
+  INITIAL_SPEED: 400,
+  MIN_SPEED: 50,
+  soundEnabled: false,
+  debug: true
+};
+
+export const COLORS = {
+  SNAKE_HEAD: '#2ecc71',
+  SNAKE_BODY: '#27ae60', 
+  FOOD: '#ff3b3b',
+  BG_TOP: '#0f1c16',
+  BG_BOTTOM: '#050907'
+};
+
+export const LEVELS = []; // Один бесконечный уровень
