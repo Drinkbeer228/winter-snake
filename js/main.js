@@ -379,6 +379,7 @@ function initGame() {
   initAudio();
   initMusicPlaceholder();
   initSnake();
+  createItem();
 
   if (typeof resizeCanvas === 'function') {
     resizeCanvas();
