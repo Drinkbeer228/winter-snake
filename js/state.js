@@ -89,7 +89,6 @@ function initSnake() {
 
 // === СБРОС СОСТОЯНИЯ ===
 function resetState() {
-  state.snake = [];
   state.score = 0;
   state.sessionApples = 0;
   state.comboApples = 0;
