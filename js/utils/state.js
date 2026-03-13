@@ -7,5 +7,7 @@ export const state = {
   currentLevel: 1,
   gameSpeed: 400,
   isEating: false,  // флаг для анимации
-  eatTimer: 0      // таймер анимации
+  eatTimer: 0,     // таймер анимации
+  poop: [],        // массив {x, y} куч
+  poopInterval: 10 // как часто оставляет (каждые 10 тиков)
 };

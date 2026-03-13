@@ -15,6 +15,7 @@ export default class Game {
     this.renderer = new Renderer(this.ctx);
     this.lastUpdate = 0;
     this.frameCount = 0; // для движения еды
+    this.poopTimer = 0;  // для оставления куч
   }
 
   start() {
@@ -38,6 +39,13 @@ export default class Game {
   update() {
     this.snake.move();
     this.frameCount++;
+    this.poopTimer++;
+    
+    // Оставляем кучи после 3 очков
+    if (this.poopTimer >= state.poopInterval && state.score >= 3) {
+      this.addPoop();
+      this.poopTimer = 0;
+    }
     
     // Движение еды после 5 очков
     if (state.score >= 5 && state.food) {
@@ -82,6 +90,7 @@ export default class Game {
   render() {
     this.renderer.clear();
     this.renderer.drawGrid();
+    this.renderer.drawPoop(state.poop);
     this.renderer.drawSnake(this.snake.segments, this.snake.direction);
     this.renderer.drawFood(state.food);
     
@@ -124,6 +133,11 @@ export default class Game {
       state.food.x = newX;
       state.food.y = newY;
     }
+  }
+
+  addPoop() {
+    const tail = this.snake.segments[this.snake.segments.length - 1];
+    state.poop.push({x: tail.x, y: tail.y});
   }
 
   gameOver() {

@@ -75,4 +75,20 @@ export default class Renderer {
     this.ctx.fillStyle = COLORS.FOOD;
     this.ctx.fillRect(food.x, food.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
   }
+
+  drawPoop(poopArray) {
+    if (!poopArray || poopArray.length === 0) return;
+    
+    poopArray.forEach(p => {
+      this.ctx.fillStyle = COLORS.POOP;
+      this.ctx.beginPath();
+      this.ctx.arc(
+        p.x + CONFIG.GRID/2, 
+        p.y + CONFIG.GRID/2, 
+        CONFIG.GRID/3, 
+        0, Math.PI * 2
+      );
+      this.ctx.fill();
+    });
+  }
 }
