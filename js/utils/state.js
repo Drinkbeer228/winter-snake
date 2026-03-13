@@ -16,5 +16,10 @@ export const state = {
   obstacles: [],   // массив {x, y, type: 'stone'|'log'|...}
   obstacleInterval: 10, // камень каждые 10 очков
   hammer: null,    // {x, y} или null
-  hasHammer: false // игрок подобрал молот
+  hasHammer: false, // игрок подобрал молот
+  achievements: [
+    { id: 'first_10', name: 'Первая десятка', desc: 'Набери 10 очков', threshold: 10, unlocked: false },
+    { id: 'first_50', name: 'Опытный', desc: 'Набери 50 очков', threshold: 50, unlocked: false },
+    { id: 'master', name: 'Мастер свайпов', desc: 'Набери 100 очков', threshold: 100, unlocked: false }
+  ]
 };

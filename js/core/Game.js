@@ -53,6 +53,7 @@ export default class Game {
     // Инициализация отображения счёта
     this.updateScoreDisplay();
     this.updateSpeedDisplay();
+    this.loadAchievements();
   }
 
   start() {
@@ -148,6 +149,7 @@ export default class Game {
         state.score++;
         this.updateScoreDisplay();
         this.checkSpeedIncrease();
+        this.checkAchievements();
         
         // Активация анимации роста
         state.isEating = true;
@@ -320,6 +322,37 @@ export default class Game {
     
     // Молот используется сразу
     setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
+  }
+
+  checkAchievements() {
+    state.achievements.forEach(ach => {
+      if (ach.unlocked) return;
+      
+      if (state.score >= ach.threshold) {
+        ach.unlocked = true;
+        this.showAchievement(ach);
+        this.saveAchievements();
+      }
+    });
+  }
+
+  showAchievement(ach) {
+    const el = document.createElement('div');
+    el.className = 'achievement-toast';
+    el.innerHTML = `🏅 ${ach.name}<br><small>${ach.desc}</small>`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  saveAchievements() {
+    localStorage.setItem('snakeAchievements', JSON.stringify(state.achievements));
+  }
+
+  loadAchievements() {
+    const saved = localStorage.getItem('snakeAchievements');
+    if (saved) {
+      state.achievements = JSON.parse(saved);
+    }
   }
 
   checkSpeedIncrease() {
