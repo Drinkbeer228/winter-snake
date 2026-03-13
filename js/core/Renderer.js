@@ -32,7 +32,13 @@ export default class Renderer {
 
   drawSnake(segments, direction) {
     if (!segments || segments.length === 0) return;
-    
+  
+    // Свечение змейки в режиме чая
+    if (state.hasTea) {
+      this.ctx.shadowColor = '#FF6B6B';
+      this.ctx.shadowBlur = 15;
+    }
+  
     segments.forEach((segment, index) => {
       const isHead = index === 0;
       
@@ -68,6 +74,9 @@ export default class Renderer {
         this.ctx.fill();
       }
     });
+  
+    // Сброс свечения
+    this.ctx.shadowBlur = 0;
   }
 
   drawFood(food) {

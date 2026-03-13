@@ -17,6 +17,8 @@ export const state = {
   obstacleInterval: 10, // камень каждые 10 очков
   hammer: null,    // {x, y} или null
   hasHammer: false, // игрок подобрал молот
+  hasTea: false,  // Postal 2 чай активирован
+  teaTimer: 0,    // таймер действия чая
   achievements: [
     { id: 'first_10', name: 'Первая десятка', desc: 'Набери 10 очков', threshold: 10, unlocked: false },
     { id: 'first_50', name: 'Опытный', desc: 'Набери 50 очков', threshold: 50, unlocked: false },

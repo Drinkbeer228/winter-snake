@@ -70,6 +70,16 @@ export default class Game {
       return;
     }
     
+    // Таймер чая
+    if (state.hasTea) {
+      state.teaTimer--;
+      if (state.teaTimer <= 0) {
+        state.hasTea = false;
+        state.gameSpeed = CONFIG.INITIAL_SPEED;
+        this.updateSpeedDisplay();
+      }
+    }
+    
     const now = Date.now();
     if (now - this.lastUpdate >= state.gameSpeed) {
       this.update();
@@ -150,6 +160,11 @@ export default class Game {
         this.updateScoreDisplay();
         this.checkSpeedIncrease();
         this.checkAchievements();
+        
+        // Проверка на 50 очков (Postal 2 чай)
+        if (state.score === 50 && !state.hasTea) {
+          this.activateTea();
+        }
         
         // Активация анимации роста
         state.isEating = true;
@@ -324,6 +339,28 @@ export default class Game {
     setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
   }
 
+  activateTea() {
+    state.hasTea = true;
+    state.teaTimer = 300;  // 5 секунд при 60 FPS
+    state.gameSpeed = 50;  // Максимальная скорость
+    
+    // Уведомление
+    const el = document.createElement('div');
+    el.textContent = '☕ ЧАЕЧКА! УСКОРЕНИЕ!';
+    el.style.cssText = `
+      position: fixed; top: 30%; left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px; color: #FF6B6B;
+      text-shadow: 0 0 10px rgba(255,107,107,0.8);
+      z-index: 300; pointer-events: none;
+      animation: fadeOut 3s forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+    
+    this.updateSpeedDisplay();
+  }
+
   checkAchievements() {
     state.achievements.forEach(ach => {
       if (ach.unlocked) return;
@@ -440,6 +477,8 @@ export default class Game {
     state.obstacleInterval = 10;
     state.hammer = null;
     state.hasHammer = false;
+    state.hasTea = false;
+    state.teaTimer = 0;
     state.gameSpeed = CONFIG.INITIAL_SPEED;
     
     // Сбрасываем змейку
