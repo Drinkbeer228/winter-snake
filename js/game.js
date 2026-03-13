@@ -797,6 +797,7 @@ function hideGameOverModal() {
 function resetGame() {
   hideGameOverModal();
   resetState();
+  initSnake();
   updateScoreDisplay();
   updateComboDisplay();
   createItem();
