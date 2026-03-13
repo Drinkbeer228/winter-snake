@@ -593,13 +593,14 @@ function renderFrame() {
   clearCanvas();
   drawBackgroundSnow();
   drawObstacles();
-  drawManure();
-  drawShovel();
-  drawFood();
+  drawWalls();
+  drawTraps();
+  drawItem();
   drawSnake();
   drawParticles();
   drawFloatTexts();
   drawStatusEffectsUI();
+  drawInventory();
   drawBroomSweep();
   drawFog();
 }
@@ -758,6 +759,8 @@ function clearCanvas() {
 }
 
 function drawSnake() {
+  if (!state.snake || state.snake.length === 0) return;
+  
   const baseSize = CONFIG.GRID - 2;
   const radius = 6;
 
