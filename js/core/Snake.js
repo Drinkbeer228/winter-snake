@@ -11,16 +11,11 @@ export default class Snake {
   }
 
   setDirection(newDirection) {
-    // Проверка на движение назад
-    if (Math.abs(newDirection.x) > Math.abs(newDirection.y)) {
-      if (newDirection.y !== 0 && this.direction.y !== 0) return;
-      this.direction.y = 0;
-      this.direction.x = newDirection.x;
-    } else {
-      if (newDirection.x !== 0 && this.direction.x !== 0) return;
-      this.direction.x = 0;
-      this.direction.y = newDirection.y;
-    }
+    // Запрещаем разворот на 180°
+    if (newDirection.x === -this.direction.x && newDirection.y === 0) return;
+    if (newDirection.y === -this.direction.y && newDirection.x === 0) return;
+    
+    this.direction = newDirection;
   }
 
   move() {
