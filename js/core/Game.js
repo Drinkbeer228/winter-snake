@@ -17,6 +17,7 @@ export default class Game {
     this.frameCount = 0; // для движения еды
     this.poopTimer = 0;  // для оставления куч
     this.broomTimer = 0; // для спавна метлы
+    this.hammerTimer = 0; // для спавна молота
   }
 
   start() {
@@ -42,6 +43,7 @@ export default class Game {
     this.frameCount++;
     this.poopTimer++;
     this.broomTimer++;
+    this.hammerTimer++;
     
     // Оставляем кучи после 3 очков
     if (this.poopTimer >= state.poopInterval && state.score >= 3) {
@@ -55,11 +57,25 @@ export default class Game {
       this.broomTimer = 0;
     }
     
-    // Проверка коллизии с метлой
+    // Спавн молота (каждые 300 кадров, если есть препятствия)
+    if (this.hammerTimer >= 300 && state.obstacles.length > 0 && !state.hammer) {
+      this.spawnHammer();
+      this.hammerTimer = 0;
+    }
+    
+    // Проверка коллизий с метлой
     if (state.broom) {
       const head = this.snake.segments[0];
       if (head.x === state.broom.x && head.y === state.broom.y) {
         this.collectBroom();
+      }
+    }
+    
+    // Проверка коллизий с молотом
+    if (state.hammer) {
+      const head = this.snake.segments[0];
+      if (head.x === state.hammer.x && head.y === state.hammer.y) {
+        this.collectHammer();
       }
     }
     
@@ -122,6 +138,7 @@ export default class Game {
     this.renderer.drawPoop(state.poop);
     this.renderer.drawObstacles(state.obstacles);
     this.renderer.drawBroom(state.broom);
+    this.renderer.drawHammer(state.hammer);
     this.renderer.drawSnake(this.snake.segments, this.snake.direction);
     this.renderer.drawFood(state.food);
     
@@ -234,6 +251,32 @@ export default class Game {
   checkObstacleCollision() {
     const head = this.snake.segments[0];
     return state.obstacles.some(obs => obs.x === head.x && obs.y === head.y);
+  }
+
+  spawnHammer() {
+    if (state.hammer) return;
+    
+    const gridSize = CONFIG.GRID;
+    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
+    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
+    
+    state.hammer = {
+      x: Math.floor(Math.random() * maxX) * gridSize,
+      y: Math.floor(Math.random() * maxY) * gridSize
+    };
+  }
+
+  collectHammer() {
+    state.hammer = null;
+    state.hasHammer = true;
+    
+    // Удаляем последний камень (или все)
+    if (state.obstacles.length > 0) {
+      state.obstacles.pop();
+    }
+    
+    // Молот используется сразу
+    setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
   }
 
   gameOver() {

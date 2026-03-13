@@ -13,5 +13,7 @@ export const state = {
   broom: null,     // {x, y} или null
   broomActive: false,
   obstacles: [],   // массив {x, y, type: 'stone'|'log'|...}
-  obstacleInterval: 10 // камень каждые 10 очков
+  obstacleInterval: 10, // камень каждые 10 очков
+  hammer: null,    // {x, y} или null
+  hasHammer: false // игрок подобрал молот
 };

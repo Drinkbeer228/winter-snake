@@ -114,4 +114,14 @@ export default class Renderer {
       this.ctx.fillRect(obs.x + 2, obs.y + 2, 4, 4);
     });
   }
+
+  drawHammer(hammer) {
+    if (!hammer) return;
+    this.ctx.fillStyle = COLORS.HAMMER;
+    this.ctx.fillRect(hammer.x, hammer.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
+    
+    // Можно добавить "ручку" молота
+    this.ctx.fillStyle = '#8B4513'; // коричневая ручка
+    this.ctx.fillRect(hammer.x + CONFIG.GRID/2 - 1, hammer.y - 2, 2, 4);
+  }
 }
