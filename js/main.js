@@ -9,9 +9,6 @@ function initGame() {
     return;
   }
 
-  canvas.width = CONFIG.CANVAS_SIZE;
-  canvas.height = CONFIG.CANVAS_SIZE;
-
   const game = new Game(canvas);
   
   if (CONFIG.debug) {
