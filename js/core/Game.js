@@ -19,6 +19,24 @@ export default class Game {
     this.broomTimer = 0; // для спавна метлы
     this.hammerTimer = 0; // для спавна молота
     
+    // Элементы экрана смерти
+    this.gameOverScreen = document.getElementById('gameOverScreen');
+    this.finalScoreEl = document.getElementById('finalScore');
+    this.finalHighScoreEl = document.getElementById('finalHighScore');
+    this.restartBtn = document.getElementById('restartBtn');
+    
+    // Обработчик кнопки рестарта
+    this.restartBtn.addEventListener('click', () => {
+      this.reset();
+    });
+    
+    // Обработчик клавиши R для рестарта
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR' && !state.isRunning) {
+        this.reset();
+      }
+    });
+    
     // Инициализация отображения счёта
     this.updateScoreDisplay();
   }
@@ -288,12 +306,49 @@ export default class Game {
     document.getElementById('highScoreDisplay').textContent = `Рекорд: ${state.highScore}`;
   }
 
+  reset() {
+    // Скрываем экран смерти
+    this.gameOverScreen.classList.add('hidden');
+    
+    // Сбрасываем состояние игры
+    state.score = 0;
+    state.isRunning = true;
+    state.isEating = false;
+    state.eatTimer = 0;
+    state.poop = [];
+    state.poopInterval = 10;
+    state.broom = null;
+    state.broomActive = false;
+    state.obstacles = [];
+    state.obstacleInterval = 10;
+    state.hammer = null;
+    state.hasHammer = false;
+    state.gameSpeed = CONFIG.INITIAL_SPEED;
+    
+    // Сбрасываем змейку
+    this.snake.reset();
+    
+    // Обновляем счёт
+    this.updateScoreDisplay();
+    
+    // Спавним еду
+    this.spawnFood();
+    
+    // Перезапускаем игровой цикл
+    this.gameLoop();
+  }
+
   gameOver() {
     state.isRunning = false;
+    
     if (state.score > state.highScore) {
       state.highScore = state.score;
       localStorage.setItem('snakeHighScore', state.highScore);
     }
-    alert(`Game Over! Score: ${state.score}`);
+    
+    // Показываем экран смерти
+    this.finalScoreEl.textContent = state.score;
+    this.finalHighScoreEl.textContent = state.highScore;
+    this.gameOverScreen.classList.remove('hidden');
   }
 }

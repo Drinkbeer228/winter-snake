@@ -10,6 +10,15 @@
   <div id="scoreDisplay">Счёт: 0</div>
   <div id="highScoreDisplay">Рекорд: 0</div>
   <canvas id="gameCanvas"></canvas>
+  
+  <div id="gameOverScreen" class="hidden">
+    <h2>Game Over</h2>
+    <p>Счёт: <span id="finalScore">0</span></p>
+    <p>Рекорд: <span id="finalHighScore">0</span></p>
+    <button id="restartBtn">Играть снова</button>
+    <p class="hint">Нажми R или кнопку для рестарта</p>
+  </div>
+  
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

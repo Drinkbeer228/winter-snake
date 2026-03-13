@@ -50,4 +50,13 @@ export default class Snake {
     return head.x < 0 || head.x >= canvasWidth || 
            head.y < 0 || head.y >= canvasHeight;
   }
+
+  reset() {
+    this.segments = [
+      {x: 160, y: 160},
+      {x: 140, y: 160}
+    ];
+    this.direction = {x: CONFIG.GRID, y: 0};
+    this.growing = false;
+  }
 }
