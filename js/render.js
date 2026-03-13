@@ -600,7 +600,7 @@ function renderFrame() {
   clearCanvas();
   drawBackgroundSnow();
   drawObstacles();
-  drawTraps();
+  // drawTraps(); // TODO: implement if needed
   drawItem();
   
   // Сброс стилей перед змейкой
