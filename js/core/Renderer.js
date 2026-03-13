@@ -1,4 +1,5 @@
 import { CONFIG, COLORS } from '../utils/config.js';
+import { state } from '../utils/state.js';
 
 export default class Renderer {
   constructor(ctx) {
@@ -32,42 +33,39 @@ export default class Renderer {
   drawSnake(segments, direction) {
     if (!segments || segments.length === 0) return;
     
-    // Импортируем state для анимации
-    import('../utils/state.js').then(({ state }) => {
-      segments.forEach((segment, index) => {
-        const isHead = index === 0;
+    segments.forEach((segment, index) => {
+      const isHead = index === 0;
+      
+      // Пульсация при росте
+      let size = CONFIG.GRID - 2;
+      if (state.isEating && isHead) {
+        size += 4; // чуть больше
+        state.eatTimer--;
+        if (state.eatTimer <= 0) state.isEating = false;
+      }
+      
+      this.ctx.fillStyle = isHead ? COLORS.SNAKE_HEAD : COLORS.SNAKE_BODY;
+      this.ctx.fillRect(segment.x, segment.y, size, size);
+      
+      if (isHead) {
+        // Глаза
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillRect(segment.x + 4, segment.y + 4, 3, 3);
+        this.ctx.fillRect(segment.x + 13, segment.y + 4, 3, 3);
         
-        // Пульсация при росте
-        let size = CONFIG.GRID - 2;
-        if (state.isEating && isHead) {
-          size += 4; // чуть больше
-          state.eatTimer--;
-          if (state.eatTimer <= 0) state.isEating = false;
-        }
+        // "Зубы" / рот - белая точка в сторону движения
+        this.ctx.fillStyle = 'white';
+        const centerX = segment.x + CONFIG.GRID/2;
+        const centerY = segment.y + CONFIG.GRID/2;
         
-        this.ctx.fillStyle = isHead ? COLORS.SNAKE_HEAD : COLORS.SNAKE_BODY;
-        this.ctx.fillRect(segment.x, segment.y, size, size);
-        
-        if (isHead) {
-          // Глаза
-          this.ctx.fillStyle = 'white';
-          this.ctx.fillRect(segment.x + 4, segment.y + 4, 3, 3);
-          this.ctx.fillRect(segment.x + 13, segment.y + 4, 3, 3);
-          
-          // "Зубы" / рот - белая точка в сторону движения
-          this.ctx.fillStyle = 'white';
-          const centerX = segment.x + CONFIG.GRID/2;
-          const centerY = segment.y + CONFIG.GRID/2;
-          
-          this.ctx.beginPath();
-          this.ctx.arc(
-            centerX + (direction.x > 0 ? 4 : direction.x < 0 ? -4 : 0),
+        this.ctx.beginPath();
+        this.ctx.arc(
+          centerX + (direction.x > 0 ? 4 : direction.x < 0 ? -4 : 0),
             centerY + (direction.y > 0 ? 4 : direction.y < 0 ? -4 : 0),
             2, 0, Math.PI * 2
           );
-          this.ctx.fill();
-        }
-      });
+        this.ctx.fill();
+      }
     });
   }
 

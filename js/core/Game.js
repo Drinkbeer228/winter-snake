@@ -5,6 +5,7 @@ import Renderer from './Renderer.js';
 import { initInput } from './Input.js';
 import { spawnParticles, updateAndDrawParticles } from '../utils/Particles.js';
 import { playSound } from '../utils/audio.js';
+import { COLORS } from '../utils/config.js';
 
 export default class Game {
   constructor(canvas) {
@@ -51,14 +52,12 @@ export default class Game {
         playSound('eat');
         
         // Всплеск частиц при поедании
-        import('../utils/config.js').then(({ COLORS }) => {
-          spawnParticles(
-            state.food.x + CONFIG.GRID/2, 
-            state.food.y + CONFIG.GRID/2, 
-            COLORS.FOOD, 
-            8
-          );
-        });
+        spawnParticles(
+          state.food.x + CONFIG.GRID/2, 
+          state.food.y + CONFIG.GRID/2, 
+          COLORS.FOOD, 
+          8
+        );
         
         this.spawnFood();
       }
