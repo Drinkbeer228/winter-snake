@@ -593,12 +593,21 @@ function drawFloatTexts() {
 }
 
 function renderFrame() {
+  // Жесткий cellSize - пересчитываем каждый кадр
+  const size = Math.min(canvas.width, canvas.height);
+  const cellSize = size / CONFIG.GRID;
+  
   clearCanvas();
   drawBackgroundSnow();
   drawObstacles();
   drawWalls();
   drawTraps();
   drawItem();
+  
+  // Сброс стилей перед змейкой
+  ctx.globalAlpha = 1;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  
   drawSnake();
   drawParticles();
   drawFloatTexts();
@@ -606,6 +615,10 @@ function renderFrame() {
   drawInventory();
   drawBroomSweep();
   drawFog();
+  
+  // Визуальный маяк - красный квадрат в углу
+  ctx.fillStyle = "red";
+  ctx.fillRect(0, 0, 10, 10);
 }
 
 function drawManure() {
@@ -767,188 +780,40 @@ function clearCanvas() {
 function drawSnake() {
   if (!window.state || !window.state.snake || window.state.snake.length === 0) return;
   
+  // Жесткий cellSize для этого кадра
+  const size = Math.min(canvas.width, canvas.height);
+  const cellSize = size / CONFIG.GRID;
   const baseSize = CONFIG.GRID - 2;
   const radius = 6;
 
-  // Мягкая зелёная пульсация ("переваривание")
-  if (state.digestGlowMs > 0 && state.snake && state.snake.length > 0) {
-    const head = state.snake[0];
-    const t = state.nowMs || Date.now();
-    const p = Math.max(0, Math.min(1, state.digestGlowMs / 900));
-    const pulse = 0.55 + 0.45 * Math.sin(t * 0.02);
-    const a = 0.14 * p * pulse;
-    const cx = head.x + CONFIG.GRID / 2;
-    const cy = head.y + CONFIG.GRID / 2;
-    const r = CONFIG.GRID * (1.1 + 0.25 * (1 - p));
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.fillStyle = 'rgba(80, 255, 160, 1)';
-    ctx.shadowColor = 'rgba(80, 255, 160, 0.8)';
-    ctx.shadowBlur = 18;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.globalAlpha = 1;
-  }
-
-  // лёгкая тень под всей змейкой (без фильтров)
-  ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.12)';
-  const shadowOffsetX = 2;
-  const shadowOffsetY = 3;
-  for (let i = 0; i < state.snake.length; i++) {
-    const part = state.snake[i];
+  // Защита от NaN и отрисовка сегментов
+  for (let i = 0; i < window.state.snake.length; i++) {
+    const part = window.state.snake[i];
+    if (isNaN(part.x) || isNaN(part.y)) {
+      console.log("NaN coords detected:", part);
+      continue;
+    }
+    
     const isHead = i === 0;
-
-    let headScale = 1;
-    if (isHead && state.headPopDurationMs > 0 && state.headPopTimeMs > 0) {
-      const p = 1 - (state.headPopTimeMs / state.headPopDurationMs);
-      const eased = 1 - Math.pow(1 - p, 3);
-      headScale = 1.3 - 0.3 * eased;
+    const segmentSize = baseSize * (isHead ? 1 : 0.9);
+    
+    // Относительные координаты
+    const x = part.x * cellSize;
+    const y = part.y * cellSize;
+    
+    ctx.fillStyle = isHead ? COLORS.SNAKE_HEAD : COLORS.SNAKE_BODY;
+    ctx.fillRect(x, y, segmentSize, segmentSize);
+    
+    // Глаза только на голове
+    if (isHead) {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(x + 2, y + 2, 3, 3);
+      ctx.fillRect(x + segmentSize - 5, y + 2, 3, 3);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(x + 3, y + 3, 1, 1);
+      ctx.fillRect(x + segmentSize - 4, y + 3, 1, 1);
     }
-
-    // Tail taper: последний сегмент примерно в 2 раза меньше головы
-    const tailT = state.snake.length <= 1 ? 0 : (i / (state.snake.length - 1));
-    const tailScale = 1 - 0.45 * tailT;
-
-    let swallowMul = 1;
-    if (part && typeof part.swallowDurationMs === 'number') {
-      if (typeof part.swallowDelayMs === 'number' && part.swallowDelayMs > 0) {
-        swallowMul = 1;
-      } else if (typeof part.swallowTimeMs === 'number' && part.swallowTimeMs > 0 && part.swallowDurationMs > 0) {
-        const p = 1 - (part.swallowTimeMs / part.swallowDurationMs);
-        const amp = typeof part.swallowAmp === 'number' ? part.swallowAmp : 0.25;
-        const bump = Math.sin(p * Math.PI);
-        swallowMul = 1 + amp * bump;
-      }
-    }
-
-    const size = (isHead ? baseSize * 1.12 * headScale : baseSize * tailScale) * swallowMul;
-    const cx = part.x + baseSize / 2;
-    const cy = part.y + baseSize / 2;
-    const x = cx - size / 2 + shadowOffsetX;
-    const y = cy - size / 2 + shadowOffsetY;
-
-    ctx.beginPath();
-    ctx.roundRect(x, y, size, size, radius);
-    ctx.fill();
   }
-  ctx.restore();
-
-  state.snake.forEach((part, index) => {
-    const isHead = index === 0;
-    const color = isHead ? COLORS.SNAKE_HEAD : COLORS.SNAKE_BODY;
-
-    // Head scale-pop: 1.3 -> 1.0 за 200мс
-    let scale = 1;
-    if (isHead && state.headPopDurationMs > 0 && state.headPopTimeMs > 0) {
-      const p = 1 - (state.headPopTimeMs / state.headPopDurationMs);
-      const eased = 1 - Math.pow(1 - p, 3);
-      scale = 1.3 - 0.3 * eased;
-    }
-    if (isHead && state.headPopTimeMs === 0) {
-      scale = 1;
-    }
-
-    // Tail taper: последний сегмент примерно в 2 раза меньше головы
-    const tailT = state.snake.length <= 1 ? 0 : (index / (state.snake.length - 1));
-    const tailScale = isHead ? 1 : (1 - 0.45 * tailT);
-
-    let swallowMul = 1;
-    if (part && typeof part.swallowDurationMs === 'number') {
-      if (typeof part.swallowDelayMs === 'number' && part.swallowDelayMs > 0) {
-        swallowMul = 1;
-      } else if (typeof part.swallowTimeMs === 'number' && part.swallowTimeMs > 0 && part.swallowDurationMs > 0) {
-        const p = 1 - (part.swallowTimeMs / part.swallowDurationMs);
-        const amp = typeof part.swallowAmp === 'number' ? part.swallowAmp : 0.25;
-        const bump = Math.sin(p * Math.PI);
-        swallowMul = 1 + amp * bump;
-      }
-    }
-
-    const size = (isHead ? baseSize * 1.12 * scale : baseSize * tailScale) * swallowMul;
-    const cx = part.x + baseSize / 2;
-    const cy = part.y + baseSize / 2;
-    const x = cx - size / 2;
-    const y = cy - size / 2;
-
-    // Тень/сияние
-    if (state.currentLevelConfig.visuals.auroraEffect && isHead) {
-      const hue = (state.nowMs * 0.05) % 360;
-      ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-      ctx.shadowBlur = 15;
-    } else {
-      ctx.shadowColor = 'rgba(0,0,0,0.25)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 3;
-    }
-
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(x, y, size, size, radius);
-    ctx.fill();
-
-    // Блик/объём на голове
-    if (isHead) {
-      const hl = ctx.createLinearGradient(x, y, x, y + size);
-      hl.addColorStop(0, 'rgba(255,255,255,0.32)');
-      hl.addColorStop(0.55, 'rgba(255,255,255,0.04)');
-      hl.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = hl;
-      ctx.beginPath();
-      ctx.roundRect(x + size * 0.12, y + size * 0.08, size * 0.76, size * 0.40, radius);
-      ctx.fill();
-    }
-
-    // Глаза (только голова)
-    if (isHead) {
-      const dirX = Math.sign(state.dx);
-      const dirY = Math.sign(state.dy);
-
-      // Перпендикуляр для разведения глаз
-      const px = -dirY;
-      const py = dirX;
-
-      const look = size * 0.17;
-      const sep = size * 0.16;
-      const eyeR = Math.max(1.4, size * 0.10);
-      const ex = cx + dirX * look;
-      const ey = cy + dirY * look;
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetY = 0;
-
-      // Белки
-      ctx.fillStyle = 'rgba(255,255,255,0.95)';
-      ctx.beginPath();
-      ctx.arc(ex + px * sep, ey + py * sep, eyeR, 0, Math.PI * 2);
-      ctx.arc(ex - px * sep, ey - py * sep, eyeR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Зрачки (расширяются вместе с pop)
-      let pupilScale = 1;
-      if (state.headPopDurationMs > 0 && state.headPopTimeMs > 0) {
-        const p2 = 1 - (state.headPopTimeMs / state.headPopDurationMs);
-        const eased2 = 1 - Math.pow(1 - p2, 3);
-        pupilScale = 1.0 + 0.55 * (1 - eased2);
-      }
-      const pupilR = eyeR * 0.38 * pupilScale;
-      const pupilLook = eyeR * 0.35;
-
-      ctx.fillStyle = 'rgba(10, 22, 36, 0.95)';
-      ctx.beginPath();
-      ctx.arc(ex + px * sep + dirX * pupilLook, ey + py * sep + dirY * pupilLook, pupilR, 0, Math.PI * 2);
-      ctx.arc(ex - px * sep + dirX * pupilLook, ey - py * sep + dirY * pupilLook, pupilR, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Сброс эффектов
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
-  });
 }
 
 function drawFood() {
