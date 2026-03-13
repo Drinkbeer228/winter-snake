@@ -166,22 +166,10 @@ function resumeGame() {
   startGameLoop();
 }
 
-function enqueueSubtitle(text, durationMs = 6200) {
-  // stub, no subtitles
-}
-
 function showNextSubtitle() {
   // stub
 }
 
-function triggerTutorialEvent(event) {
-  // stub, no tutorial
-}
-
-window.enqueueSubtitle = enqueueSubtitle;
-window.triggerTutorialEvent = triggerTutorialEvent;
-
-// Экран перехода уровня
 function showLevelTransition(level) {
   // Удаляем предыдущее уведомление
   const existing = document.getElementById('level-notification');
@@ -506,7 +494,6 @@ function updateEffects(dtMs) {
     for (let i = state.pendingManureSpawns.length - 1; i >= 0; i--) {
       if (now >= state.pendingManureSpawns[i].dueMs) {
         spawnPoopAtTail();
-        triggerTutorialEvent('poop');
         state.pendingManureSpawns.splice(i, 1);
       }
     }
@@ -694,7 +681,6 @@ function stepGameLogic() {
   if (didGameEnd()) {
     bankPartialOnGameOver();
     playSound('gameover');
-    triggerTutorialEvent('death');
     showGameOverModal();
     state.isRunning = false;
     stopGameLoop();

@@ -14,24 +14,12 @@ function resizeCanvas() {
   const cell = CONFIG.GRID;
   const size = Math.max(cell * 10, Math.floor(Math.min(w, h) / cell) * cell);
 
-  // Учитываем devicePixelRatio для Retina экранов
-  const dpr = window.devicePixelRatio || 1;
-  const displaySize = size;
-  const actualSize = size * dpr;
-
-  if (canvas.width !== actualSize || canvas.height !== actualSize) {
-    canvas.width = actualSize;
-    canvas.height = actualSize;
+  if (canvas.width !== size || canvas.height !== size) {
+    canvas.width = size;
+    canvas.height = size;
     
-    // Устанавливаем CSS размеры для отображения
-    canvas.style.width = displaySize + 'px';
-    canvas.style.height = displaySize + 'px';
-    
-    // Масштабируем контекст для правильной отрисовки
-    ctx.scale(dpr, dpr);
-
-    // Принудительная очистка холста
-    ctx.clearRect(0, 0, actualSize, actualSize);
+    // Сброс масштаба контекста
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     // Перегенерация фоновых частиц под новый размер
     if (state) {
