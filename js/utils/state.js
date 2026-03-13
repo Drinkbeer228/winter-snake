@@ -9,5 +9,7 @@ export const state = {
   isEating: false,  // флаг для анимации
   eatTimer: 0,     // таймер анимации
   poop: [],        // массив {x, y} куч
-  poopInterval: 10 // как часто оставляет (каждые 10 тиков)
+  poopInterval: 10, // как часто оставляет (каждые 10 тиков)
+  broom: null,     // {x, y} или null
+  broomActive: false
 };

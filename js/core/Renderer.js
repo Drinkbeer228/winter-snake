@@ -91,4 +91,14 @@ export default class Renderer {
       this.ctx.fill();
     });
   }
+
+  drawBroom(broom) {
+    if (!broom) return;
+    this.ctx.fillStyle = COLORS.BROOM;
+    this.ctx.fillRect(broom.x, broom.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
+    
+    // Можно добавить "ручку" метлы
+    this.ctx.fillStyle = '#8B4513'; // коричневая ручка
+    this.ctx.fillRect(broom.x + CONFIG.GRID/2 - 1, broom.y - 2, 2, 4);
+  }
 }

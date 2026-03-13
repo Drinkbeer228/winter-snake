@@ -16,6 +16,7 @@ export default class Game {
     this.lastUpdate = 0;
     this.frameCount = 0; // для движения еды
     this.poopTimer = 0;  // для оставления куч
+    this.broomTimer = 0; // для спавна метлы
   }
 
   start() {
@@ -40,11 +41,26 @@ export default class Game {
     this.snake.move();
     this.frameCount++;
     this.poopTimer++;
+    this.broomTimer++;
     
     // Оставляем кучи после 3 очков
     if (this.poopTimer >= state.poopInterval && state.score >= 3) {
       this.addPoop();
       this.poopTimer = 0;
+    }
+    
+    // Спавн метлы (каждые 200 кадров, если есть кучи)
+    if (this.broomTimer >= 200 && state.poop.length > 0 && !state.broom) {
+      this.spawnBroom();
+      this.broomTimer = 0;
+    }
+    
+    // Проверка коллизии с метлой
+    if (state.broom) {
+      const head = this.snake.segments[0];
+      if (head.x === state.broom.x && head.y === state.broom.y) {
+        this.collectBroom();
+      }
     }
     
     // Движение еды после 5 очков
@@ -91,6 +107,7 @@ export default class Game {
     this.renderer.clear();
     this.renderer.drawGrid();
     this.renderer.drawPoop(state.poop);
+    this.renderer.drawBroom(state.broom);
     this.renderer.drawSnake(this.snake.segments, this.snake.direction);
     this.renderer.drawFood(state.food);
     
@@ -138,6 +155,25 @@ export default class Game {
   addPoop() {
     const tail = this.snake.segments[this.snake.segments.length - 1];
     state.poop.push({x: tail.x, y: tail.y});
+  }
+
+  spawnBroom() {
+    if (state.broom) return;
+    
+    const gridSize = CONFIG.GRID;
+    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
+    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
+    
+    state.broom = {
+      x: Math.floor(Math.random() * maxX) * gridSize,
+      y: Math.floor(Math.random() * maxY) * gridSize
+    };
+  }
+
+  collectBroom() {
+    state.broom = null;
+    state.poop = [];  // очищаем все кучи
+    state.score += 1; // бонусное очко
   }
 
   gameOver() {
