@@ -484,6 +484,29 @@ export default class Game {
     this.closeSkinsBtn.addEventListener('click', () => {
       this.hideSkins();
     });
+    
+    // Добавляем обработчик для F5 в модальных окнах
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+        // Закрываем все модальные окна при F5
+        this.hideSkins();
+        this.hideDaily();
+        this.hideStats();
+        this.hideLeaderboard();
+        
+        // Предотвращаем стандартное поведение F5
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      // ESC закрывает модальные окна
+      if (e.key === 'Escape') {
+        this.hideSkins();
+        this.hideDaily();
+        this.hideStats();
+        this.hideLeaderboard();
+      }
+    });
   }
 
   showSkins() {
