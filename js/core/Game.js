@@ -74,6 +74,14 @@ export default class Game {
     this.setupLeaderboardHandlers();
     this.setupDailyHandlers();
     this.setupStatsHandlers();
+    this.setupMuteHandler();
+    this.setupRestartHandler();
+    this.setupPauseHandler();
+    
+    // Load states
+    this.loadMuteState();
+    this.loadLeaderboard();
+    this.loadStats();
     
     state.isRunning = false;
   }
@@ -609,5 +617,63 @@ export default class Game {
     `;
     
     this.statsContent.innerHTML = html;
+  }
+
+  // Добавляем недостающие методы
+  setupMuteHandler() {
+    this.muteBtn.addEventListener('click', () => {
+      this.toggleMute();
+    });
+  }
+
+  setupRestartHandler() {
+    this.restartBtn.addEventListener('click', () => {
+      this.reset();
+      this.startGameFromMenu();
+    });
+    
+    // Клавиша R
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR' && !state.isRunning && !this.gameOverScreen.classList.contains('hidden')) {
+        this.reset();
+        this.startGameFromMenu();
+      }
+    });
+  }
+
+  setupPauseHandler() {
+    document.addEventListener('keydown', (e) => {
+      if ((e.code === 'Space' || e.code === 'Escape') && state.isRunning) {
+        e.preventDefault();
+        this.togglePause();
+      }
+    });
+  }
+
+  togglePause() {
+    state.isPaused = !state.isPaused;
+    if (state.isPaused) {
+      this.pauseOverlay.classList.remove('hidden');
+    } else {
+      this.pauseOverlay.classList.add('hidden');
+    }
+  }
+
+  loadMuteState() {
+    const muted = localStorage.getItem('snakeMuted') === 'true';
+    state.muted = muted;
+    this.updateMuteButton();
+  }
+
+  loadLeaderboard() {
+    state.leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
+  }
+
+  loadStats() {
+    state.stats = JSON.parse(localStorage.getItem('snakeStats') || '{}');
+  }
+
+  updateMuteButton() {
+    this.muteBtn.textContent = state.muted ? '🔇' : '🔊';
   }
 }
