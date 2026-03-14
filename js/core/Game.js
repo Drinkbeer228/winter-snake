@@ -113,6 +113,9 @@ export default class Game {
     this.reset();
     this.updateScoreDisplay();
     this.updateSpeedDisplay();
+    
+    // ЗАПУСКАЕМ ИГРУ!
+    this.start();
   }
 
   setDifficulty(level) {
