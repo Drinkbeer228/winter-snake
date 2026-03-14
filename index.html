@@ -33,9 +33,21 @@
     
     <button id="startBtn">Начать игру</button>
     
+    <button id="leaderboardBtn" class="secondary">🏆 Таблица лидеров</button>
+    
     <div class="highscore-display">
       <p>Рекорд: <span id="menuHighScore">0</span></p>
     </div>
+  </div>
+  
+  <!-- Окно таблицы лидеров -->
+  <div id="leaderboardModal" class="modal hidden">
+    <h2>🏆 Таблица лидеров</h2>
+    <div id="leaderboardList" class="leaderboard-list">
+      <!-- Сюда вставляются результаты -->
+    </div>
+    <button id="clearLeaderboardBtn" class="danger">Сбросить</button>
+    <button id="closeLeaderboardBtn" class="secondary">Закрыть</button>
   </div>
   
   <div id="pauseOverlay" class="hidden">

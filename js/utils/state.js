@@ -23,5 +23,6 @@ export const state = {
     { id: 'first_10', name: 'Первая десятка', desc: 'Набери 10 очков', threshold: 10, unlocked: false },
     { id: 'first_50', name: 'Опытный', desc: 'Набери 50 очков', threshold: 50, unlocked: false },
     { id: 'master', name: 'Мастер свайпов', desc: 'Набери 100 очков', threshold: 100, unlocked: false }
-  ]
+  ],
+  leaderboard: JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]')
 };

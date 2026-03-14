@@ -39,6 +39,13 @@ export default class Game {
     // Кнопка Mute
     this.muteBtn = document.getElementById('muteBtn');
     
+    // Кнопки таблицы лидеров
+    this.leaderboardBtn = document.getElementById('leaderboardBtn');
+    this.leaderboardModal = document.getElementById('leaderboardModal');
+    this.leaderboardList = document.getElementById('leaderboardList');
+    this.clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
+    this.closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
+    
     // Загрузка настроек и инициализация
     this.loadSettings();
     this.updateMenuHighScore();
@@ -46,6 +53,8 @@ export default class Game {
     
     // Обработчики меню
     this.setupMenuHandlers();
+    this.setupLeaderboardHandlers();
+    this.updateLeaderboardDisplay();
     
     // Инициализация змейки и рендерера
     this.snake = new Snake();
@@ -519,6 +528,72 @@ export default class Game {
     }
   }
 
+  setupLeaderboardHandlers() {
+    this.leaderboardBtn.addEventListener('click', () => {
+      this.showLeaderboard();
+    });
+    
+    this.closeLeaderboardBtn.addEventListener('click', () => {
+      this.leaderboardModal.classList.add('hidden');
+    });
+    
+    this.clearLeaderboardBtn.addEventListener('click', () => {
+      this.clearLeaderboard();
+    });
+  }
+
+  showLeaderboard() {
+    this.updateLeaderboardDisplay();
+    this.leaderboardModal.classList.remove('hidden');
+  }
+
+  updateLeaderboardDisplay() {
+    if (!this.leaderboardList) return;
+    
+    const leaderboard = state.leaderboard || [];
+    
+    if (leaderboard.length === 0) {
+      this.leaderboardList.innerHTML = '<p style="text-align:center;color:#888;">Пока нет записей</p>';
+      return;
+    }
+    
+    this.leaderboardList.innerHTML = leaderboard
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map((entry, index) => `
+        <div class="leaderboard-entry">
+          <span>#${index + 1}</span>
+          <span>${entry.score} очков</span>
+          <span>${new Date(entry.date).toLocaleDateString()}</span>
+        </div>
+      `)
+      .join('');
+  }
+
+  addToLeaderboard(score) {
+    if (!state.leaderboard) state.leaderboard = [];
+    
+    state.leaderboard.push({
+      score: score,
+      date: new Date().toISOString()
+    });
+    
+    // Сортируем и оставляем топ-10
+    state.leaderboard.sort((a, b) => b.score - a.score);
+    state.leaderboard = state.leaderboard.slice(0, 10);
+    
+    // Сохраняем
+    localStorage.setItem('snakeLeaderboard', JSON.stringify(state.leaderboard));
+  }
+
+  clearLeaderboard() {
+    if (confirm('Точно сбросить таблицу лидеров?')) {
+      state.leaderboard = [];
+      localStorage.removeItem('snakeLeaderboard');
+      this.updateLeaderboardDisplay();
+    }
+  }
+
   resizeCanvas() {
     const maxSize = Math.min(
       window.innerWidth * 0.95,
@@ -645,6 +720,9 @@ export default class Game {
       state.highScore = state.score;
       localStorage.setItem('snakeHighScore', state.highScore);
     }
+    
+    // Добавляем в таблицу лидеров
+    this.addToLeaderboard(state.score);
     
     // Обновляем рекорд в меню
     this.updateMenuHighScore();
