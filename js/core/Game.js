@@ -52,6 +52,14 @@ export default class Game {
     this.skinsList = document.getElementById('skinsList');
     this.closeSkinsBtn = document.getElementById('closeSkinsBtn');
     
+    // Кнопки ежедневных челленджей
+    this.dailyBtn = document.getElementById('dailyBtn');
+    this.dailyModal = document.getElementById('dailyModal');
+    this.dailyList = document.getElementById('dailyList');
+    this.dailyTimer = document.getElementById('dailyTimer');
+    this.dailyTotalReward = document.getElementById('dailyTotalReward');
+    this.closeDailyBtn = document.getElementById('closeDailyBtn');
+    
     // Загрузка настроек и инициализация
     this.loadSettings();
     this.updateMenuHighScore();
@@ -61,8 +69,14 @@ export default class Game {
     this.setupMenuHandlers();
     this.setupLeaderboardHandlers();
     this.setupSkinsHandlers();
+    this.setupDailyHandlers();
     this.updateLeaderboardDisplay();
     this.renderSkinsList();
+    
+    // Инициализация ежедневных челленджей
+    this.checkDailyReset();
+    this.renderDailyChallenges();
+    this.startDailyTimer();
     
     // Инициализация змейки и рендерера
     this.snake = new Snake();
@@ -708,6 +722,138 @@ export default class Game {
     setTimeout(() => el.remove(), 3000);
   }
 
+  setupDailyHandlers() {
+    this.dailyBtn.addEventListener('click', () => {
+      this.showDaily();
+    });
+    
+    this.closeDailyBtn.addEventListener('click', () => {
+      this.dailyModal.classList.add('hidden');
+    });
+  }
+
+  showDaily() {
+    this.checkDailyReset();
+    this.renderDailyChallenges();
+    this.dailyModal.classList.remove('hidden');
+  }
+
+  checkDailyReset() {
+    const today = new Date().toDateString();
+    const savedDate = localStorage.getItem('snakeDailyDate');
+    
+    if (savedDate !== today) {
+      // Новый день — сбрасываем челленджи
+      this.generateDailyChallenges();
+      localStorage.setItem('snakeDailyDate', today);
+      state.dailyChallenges.date = today;
+      state.dailyChallenges.completed = [];
+      localStorage.setItem('snakeDailyCompleted', '[]');
+    }
+  }
+
+  generateDailyChallenges() {
+    // Выбираем 3 случайных задания
+    const shuffled = [...CONFIG.DAILY_CHALLENGES].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+    
+    const challenges = selected.map(c => ({
+      ...c,
+      progress: 0
+    }));
+    
+    state.dailyChallenges.challenges = challenges;
+    localStorage.setItem('snakeDailyChallenges', JSON.stringify(challenges));
+  }
+
+  renderDailyChallenges() {
+    if (!this.dailyList) return;
+    
+    const challenges = state.dailyChallenges.challenges || [];
+    const completed = state.dailyChallenges.completed || [];
+    
+    if (challenges.length === 0) {
+      this.generateDailyChallenges();
+      return;
+    }
+    
+    let totalReward = 0;
+    
+    this.dailyList.innerHTML = challenges.map(challenge => {
+      const isCompleted = completed.includes(challenge.id);
+      const progress = isCompleted ? challenge.target : (challenge.progress || 0);
+      const percent = (progress / challenge.target) * 100;
+      
+      if (isCompleted) totalReward += challenge.reward;
+      
+      return `
+        <div class="daily-card ${isCompleted ? 'completed' : 'incomplete'}">
+          <div class="daily-header">
+            <span class="daily-name">${challenge.name}</span>
+            <span class="daily-status">${isCompleted ? '✅' : '🔄'}</span>
+          </div>
+          <div class="daily-description">${challenge.description}</div>
+          <div class="daily-progress">
+            <div class="daily-progress-bar" style="width: ${Math.min(percent, 100)}%"></div>
+          </div>
+          <div style="text-align:right;font-size:12px;margin-top:5px;color:#888;">
+            ${progress}/${challenge.target} • Награда: ${challenge.reward} очков
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    this.dailyTotalReward.textContent = totalReward;
+  }
+
+  updateDailyProgress(type, value) {
+    const challenges = state.dailyChallenges.challenges || [];
+    const completed = state.dailyChallenges.completed || [];
+    
+    challenges.forEach(challenge => {
+      if (completed.includes(challenge.id)) return;
+      if (challenge.type !== type) return;
+      
+      challenge.progress = Math.max(challenge.progress || 0, value);
+      
+      if (challenge.progress >= challenge.target) {
+        completed.push(challenge.id);
+        state.dailyReward += challenge.reward;
+        this.showNotification(`📅 Челлендж выполнен: ${challenge.name}! +${challenge.reward} очков`);
+      }
+    });
+    
+    state.dailyChallenges.challenges = challenges;
+    state.dailyChallenges.completed = completed;
+    localStorage.setItem('snakeDailyChallenges', JSON.stringify(challenges));
+    localStorage.setItem('snakeDailyCompleted', JSON.stringify(completed));
+    localStorage.setItem('snakeDailyReward', state.dailyReward.toString());
+    
+    this.renderDailyChallenges();
+  }
+
+  startDailyTimer() {
+    const updateTimer = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const diff = tomorrow - now;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      if (this.dailyTimer) {
+        this.dailyTimer.textContent = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+      }
+      
+      setTimeout(updateTimer, 1000);
+    };
+    
+    updateTimer();
+  }
+
   resizeCanvas() {
     const maxSize = Math.min(
       window.innerWidth * 0.95,
@@ -789,42 +935,97 @@ export default class Game {
   }
 
   reset() {
-    // Скрываем экран смерти
-    this.gameOverScreen.classList.add('hidden');
-    
-    // Скрываем оверлей паузы
-    this.hidePauseOverlay();
-    
-    // Сбрасываем состояние игры
     state.score = 0;
-    state.isRunning = true;
+    state.snake = [{x: 10, y: 10}];
+    state.food = null;
+    state.isRunning = false;
     state.isPaused = false;
-    state.isEating = false;
-    state.eatTimer = 0;
+    state.gameSpeed = CONFIG.INITIAL_SPEED;
+    state.hasTea = false;
+    state.teaTimer = 0;
     state.poop = [];
-    state.poopInterval = 10;
     state.broom = null;
     state.broomActive = false;
     state.obstacles = [];
-    state.obstacleInterval = 10;
     state.hammer = null;
     state.hasHammer = false;
-    state.hasTea = false;
-    state.teaTimer = 0;
-    state.gameSpeed = CONFIG.INITIAL_SPEED;
     
-    // Сбрасываем змейку
+    // Счётчики для ежедневных челленджей
+    this.foodEaten = 0;
+    this.broomsCollected = 0;
+    this.gameStartTime = Date.now();
+    
+    // Скрываем экран смерти если есть
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    if (gameOverScreen) {
+      gameOverScreen.classList.add('hidden');
+    }
+    
     this.snake.reset();
-    
-    // Обновляем счёт
+    this.spawnFood();
     this.updateScoreDisplay();
     this.updateSpeedDisplay();
+  }
+
+  resizeCanvas() {
+    const maxSize = Math.min(
+      window.innerWidth * 0.95,
+      window.innerHeight * 0.85
+    );
     
-    // Спавним еду
-    this.spawnFood();
+    // Округляем до кратного CONFIG.GRID
+    const size = Math.floor(maxSize / CONFIG.GRID) * CONFIG.GRID;
     
-    // Перезапускаем игровой цикл
-    this.gameLoop();
+    this.canvas.style.width = `${size}px`;
+    this.canvas.style.height = `${size}px`;
+    
+    // Внутреннее разрешение остаётся фиксированным
+    // CSS масштабирует отображение
+  }
+
+checkSpeedIncrease() {
+  if (state.score > 0 && state.score % 5 === 0) {
+    const oldSpeed = state.gameSpeed;
+    state.gameSpeed = Math.max(
+      CONFIG.MIN_SPEED,
+      state.gameSpeed * CONFIG.SPEED_MULTIPLIER
+    );
+    
+    // Показываем уведомление только если скорость реально изменилась
+    if (oldSpeed !== state.gameSpeed) {
+      this.showSpeedNotification();
+      this.updateSpeedDisplay();
+    }
+  }
+}
+
+showSpeedNotification() {
+  const el = document.createElement('div');
+  el.textContent = 'СКОРОСТЬ!';
+  el.style.cssText = `
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px; color: #FF6B6B;
+    text-shadow: 0 0 10px rgba(255,107,107,0.8);
+    z-index: 300; pointer-events: none;
+    animation: fadeOut 1.5s forwards;
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
+
+togglePause() {
+  // Нельзя паузить на экране смерти
+  if (!this.gameOverScreen.classList.contains('hidden')) {
+    return;
+  }
+  
+  state.isPaused = !state.isPaused;
+  
+  if (state.isPaused) {
+    this.showPauseOverlay();
+  } else {
+    this.hidePauseOverlay();
   }
 
   gameOver() {

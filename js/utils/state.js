@@ -26,5 +26,11 @@ export const state = {
   ],
   leaderboard: JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]'),
   selectedSkin: localStorage.getItem('snakeSelectedSkin') || 'classic',
-  unlockedSkins: JSON.parse(localStorage.getItem('snakeUnlockedSkins') || '["classic"]')
+  unlockedSkins: JSON.parse(localStorage.getItem('snakeUnlockedSkins') || '["classic"]'),
+  dailyChallenges: {
+    date: localStorage.getItem('snakeDailyDate') || new Date().toDateString(),
+    challenges: JSON.parse(localStorage.getItem('snakeDailyChallenges') || '[]'),
+    completed: JSON.parse(localStorage.getItem('snakeDailyCompleted') || '[]')
+  },
+  dailyReward: parseInt(localStorage.getItem('snakeDailyReward') || '0')
 };

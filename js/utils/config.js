@@ -68,4 +68,63 @@ export const SKINS = [
   }
 ];
 
+export const DAILY_CHALLENGES = [
+  {
+    id: 'score_10',
+    name: 'Первая десятка',
+    description: 'Набери 10 очков за игру',
+    type: 'score',
+    target: 10,
+    reward: 5  // бонусные очки
+  },
+  {
+    id: 'score_25',
+    name: 'Опытный',
+    description: 'Набери 25 очков за игру',
+    type: 'score',
+    target: 25,
+    reward: 10
+  },
+  {
+    id: 'score_50',
+    name: 'Мастер',
+    description: 'Набери 50 очков за игру',
+    type: 'score',
+    target: 50,
+    reward: 20
+  },
+  {
+    id: 'eat_20',
+    name: 'Обжора',
+    description: 'Съешь 20 яблок за игру',
+    type: 'food_eaten',
+    target: 20,
+    reward: 10
+  },
+  {
+    id: 'survive_2min',
+    name: 'Долгожитель',
+    description: 'Продержись 2 минуты',
+    type: 'time_survived',
+    target: 120,  // секунды
+    reward: 15
+  },
+  {
+    id: 'clean_poop',
+    name: 'Чистюля',
+    description: 'Собери 3 метлы за игру',
+    type: 'broom_collected',
+    target: 3,
+    reward: 10
+  },
+  {
+    id: 'no_death',
+    name: 'Бессмертный',
+    description: 'Достигни 30 очков без смерти',
+    type: 'score_no_death',
+    target: 30,
+    reward: 25
+  }
+];
+
 export const LEVELS = []; // Один бесконечный уровень

@@ -37,9 +37,26 @@
     
     <button id="skinsBtn" class="secondary">🎨 Скины</button>
     
+    <button id="dailyBtn" class="secondary">📅 Ежедневные</button>
+    
     <div class="highscore-display">
       <p>Рекорд: <span id="menuHighScore">0</span></p>
     </div>
+  </div>
+  
+  <!-- Окно ежедневных заданий -->
+  <div id="dailyModal" class="modal hidden">
+    <h2>📅 Ежедневные челленджи</h2>
+    <div id="dailyReset" class="daily-reset">
+      Сброс через: <span id="dailyTimer">--:--:--</span>
+    </div>
+    <div id="dailyList" class="daily-list">
+      <!-- Сюда вставляются задания -->
+    </div>
+    <div class="daily-reward">
+      Награда за все: <span id="dailyTotalReward">0</span> очков
+    </div>
+    <button id="closeDailyBtn" class="secondary">Закрыть</button>
   </div>
   
   <!-- Окно выбора скинов -->
