@@ -3,128 +3,33 @@ export const CONFIG = {
   CANVAS_SIZE: 400,
   INITIAL_SPEED: 400,
   MIN_SPEED: 50,
-  SPEED_MULTIPLIER: 0.9,  // Каждые 5 очков скорость * 0.9
+  SPEED_MULTIPLIER: 0.9,
   soundEnabled: true,
   volume: 0.5,
-  debug: true
-};
-
-export const COLORS = {
-  SNAKE_HEAD: '#2ecc71',
-  SNAKE_BODY: '#27ae60', 
-  FOOD: '#ff3b3b',
-  BG_TOP: '#0f1c16',
-  BG_BOTTOM: '#050907',
+  debug: true,
   
-  // Новые цвета
-  POOP: '#8B4513',
-  BROOM: '#FFD700',
-  OBSTACLE: '#808080',
-  HAMMER: '#CD853F'
+  SKINS: [
+    { id: 'classic', name: 'Классика', color: '#4CAF50', unlockAt: 0 },
+    { id: 'fire', name: 'Огонь', color: '#FF5722', unlockAt: 25 },
+    { id: 'ice', name: 'Лёд', color: '#00BCD4', unlockAt: 50 },
+    { id: 'gold', name: 'Золото', color: '#FFD700', unlockAt: 100 },
+    { id: 'shadow', name: 'Тень', color: '#9C27B0', unlockAt: 150 },
+    { id: 'postal', name: 'ЧАЕЧКА', color: '#8B4513', unlockAt: 200 }
+  ],
+  
+  ACHIEVEMENTS: [
+    { id: 'first_food', name: 'Первая еда', threshold: 1, description: 'Съешь первую еду' },
+    { id: 'score_10', name: '10 очков', threshold: 10, description: 'Набери 10 очков' },
+    { id: 'score_25', name: '25 очков', threshold: 25, description: 'Набери 25 очков' },
+    { id: 'score_50', name: '50 очков', threshold: 50, description: 'Набери 50 очков' }
+  ],
+  
+  DAILY_CHALLENGES: [
+    { id: 'food_10', name: 'Съешь 10 еды', type: 'food', target: 10, reward: 10 },
+    { id: 'brooms_3', name: 'Собери 3 метлы', type: 'broom', target: 3, reward: 15 },
+    { id: 'poop_5', name: 'Оставь 5 куч', type: 'poop', target: 5, reward: 20 },
+    { id: 'score_30', name: 'Набери 30 очков', type: 'score', target: 30, reward: 25 },
+    { id: 'obstacles_2', name: 'Разбей 2 камня', type: 'obstacle', target: 2, reward: 30 },
+    { id: 'hammers_2', name: 'Собери 2 молота', type: 'hammer', target: 2, reward: 35 }
+  ]
 };
-
-export const SKINS = [
-  {
-    id: 'classic',
-    name: 'Классическая',
-    colors: { head: '#2ecc71', body: '#27ae60' },
-    unlockAt: 0,  // Доступен сразу
-    description: 'Стандартная змейка'
-  },
-  {
-    id: 'gold',
-    name: 'Золотая',
-    colors: { head: '#FFD700', body: '#FFA500' },
-    unlockAt: 25,  // 25 очков
-    description: 'Для опытных игроков'
-  },
-  {
-    id: 'red',
-    name: 'Красная',
-    colors: { head: '#e74c3c', body: '#c0392b' },
-    unlockAt: 50,  // 50 очков
-    description: 'Опасная и быстрая'
-  },
-  {
-    id: 'blue',
-    name: 'Синяя',
-    colors: { head: '#3498db', body: '#2980b9' },
-    unlockAt: 75,  // 75 очков
-    description: 'Холодная как лёд'
-  },
-  {
-    id: 'rainbow',
-    name: 'Радужная',
-    colors: { head: '#ff00ff', body: '#00ffff' },
-    unlockAt: 100,  // 100 очков
-    description: 'Легендарная змейка'
-  },
-  {
-    id: 'postal',
-    name: 'ЧАЕЧКА',
-    colors: { head: '#FF6B6B', body: '#FF8E8E' },
-    unlockAt: 'secret',  // Секретный скин
-    description: '??? ( Postal 2 отсылка )'
-  }
-];
-
-export const DAILY_CHALLENGES = [
-  {
-    id: 'score_10',
-    name: 'Первая десятка',
-    description: 'Набери 10 очков за игру',
-    type: 'score',
-    target: 10,
-    reward: 5  // бонусные очки
-  },
-  {
-    id: 'score_25',
-    name: 'Опытный',
-    description: 'Набери 25 очков за игру',
-    type: 'score',
-    target: 25,
-    reward: 10
-  },
-  {
-    id: 'score_50',
-    name: 'Мастер',
-    description: 'Набери 50 очков за игру',
-    type: 'score',
-    target: 50,
-    reward: 20
-  },
-  {
-    id: 'eat_20',
-    name: 'Обжора',
-    description: 'Съешь 20 яблок за игру',
-    type: 'food_eaten',
-    target: 20,
-    reward: 10
-  },
-  {
-    id: 'survive_2min',
-    name: 'Долгожитель',
-    description: 'Продержись 2 минуты',
-    type: 'time_survived',
-    target: 120,  // секунды
-    reward: 15
-  },
-  {
-    id: 'clean_poop',
-    name: 'Чистюля',
-    description: 'Собери 3 метлы за игру',
-    type: 'broom_collected',
-    target: 3,
-    reward: 10
-  },
-  {
-    id: 'no_death',
-    name: 'Бессмертный',
-    description: 'Достигни 30 очков без смерти',
-    type: 'score_no_death',
-    target: 30,
-    reward: 25
-  }
-];
-
-export const LEVELS = []; // Один бесконечный уровень

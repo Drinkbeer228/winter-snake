@@ -15,11 +15,12 @@ function initGame() {
     window.__game = game;
   }
   
-  initInput((direction) => {
-    if (game.snake && game.snake.setDirection) {
-      game.snake.setDirection(direction);
-    }
-  });
+  // Инициализация управления
+  initInput((direction) => game.snake.setDirection(direction));
+  
+  // Игра начинается через меню, не нужно вызывать start()
+  // game.spawnFood();
+  // game.start();
 }
 
 document.addEventListener('DOMContentLoaded', initGame);
