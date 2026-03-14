@@ -447,6 +447,59 @@ body {
   text-align: center;
 }
 
+/* Статистика */
+.stats-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  width: 450px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.2s;
+  backdrop-filter: blur(5px);
+}
+
+.stat-card:hover {
+  transform: scale(1.05);
+  background: rgba(255,255,255,0.15);
+}
+
+.stat-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #2ecc71;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #888;
+}
+
+.stat-card.highlight {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.2));
+  border: 2px solid #FFD700;
+}
+
+.stat-card.highlight .stat-value {
+  color: #FFD700;
+  font-size: 36px;
+}
+
 #gameOverScreen {
   position: fixed;
   top: 0; left: 0;

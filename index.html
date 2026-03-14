@@ -39,9 +39,21 @@
     
     <button id="dailyBtn" class="secondary">📅 Ежедневные</button>
     
+    <button id="statsBtn" class="secondary">📊 Статистика</button>
+    
     <div class="highscore-display">
       <p>Рекорд: <span id="menuHighScore">0</span></p>
     </div>
+  </div>
+  
+  <!-- Окно статистики -->
+  <div id="statsModal" class="modal hidden">
+    <h2>📊 Статистика игрока</h2>
+    <div id="statsContent" class="stats-content">
+      <!-- Сюда вставляется статистика -->
+    </div>
+    <button id="resetStatsBtn" class="danger">Сбросить статистику</button>
+    <button id="closeStatsBtn" class="secondary">Закрыть</button>
   </div>
   
   <!-- Окно ежедневных заданий -->

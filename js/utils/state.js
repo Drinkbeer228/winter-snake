@@ -32,5 +32,6 @@ export const state = {
     challenges: JSON.parse(localStorage.getItem('snakeDailyChallenges') || '[]'),
     completed: JSON.parse(localStorage.getItem('snakeDailyCompleted') || '[]')
   },
-  dailyReward: parseInt(localStorage.getItem('snakeDailyReward') || '0')
+  dailyReward: parseInt(localStorage.getItem('snakeDailyReward') || '0'),
+  stats: JSON.parse(localStorage.getItem('snakeStats') || '{}')
 };

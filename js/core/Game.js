@@ -60,6 +60,13 @@ export default class Game {
     this.dailyTotalReward = document.getElementById('dailyTotalReward');
     this.closeDailyBtn = document.getElementById('closeDailyBtn');
     
+    // Кнопки статистики
+    this.statsBtn = document.getElementById('statsBtn');
+    this.statsModal = document.getElementById('statsModal');
+    this.statsContent = document.getElementById('statsContent');
+    this.resetStatsBtn = document.getElementById('resetStatsBtn');
+    this.closeStatsBtn = document.getElementById('closeStatsBtn');
+    
     // Загрузка настроек и инициализация
     this.loadSettings();
     this.updateMenuHighScore();
@@ -70,6 +77,7 @@ export default class Game {
     this.setupLeaderboardHandlers();
     this.setupSkinsHandlers();
     this.setupDailyHandlers();
+    this.setupStatsHandlers();
     this.updateLeaderboardDisplay();
     this.renderSkinsList();
     
@@ -77,6 +85,10 @@ export default class Game {
     this.checkDailyReset();
     this.renderDailyChallenges();
     this.startDailyTimer();
+    
+    // Инициализация статистики
+    this.initStats();
+    this.renderStats();
     
     // Инициализация змейки и рендерера
     this.snake = new Snake();
@@ -854,6 +866,217 @@ export default class Game {
     updateTimer();
   }
 
+  setupStatsHandlers() {
+    this.statsBtn.addEventListener('click', () => {
+      this.showStats();
+    });
+    
+    this.closeStatsBtn.addEventListener('click', () => {
+      this.statsModal.classList.add('hidden');
+    });
+    
+    this.resetStatsBtn.addEventListener('click', () => {
+      this.resetStats();
+    });
+  }
+
+  initStats() {
+    if (!state.stats || Object.keys(state.stats).length === 0) {
+      state.stats = {
+        gamesPlayed: 0,
+        totalScore: 0,
+        bestScore: 0,
+        totalTimePlayed: 0,
+        totalFoodEaten: 0,
+        totalBroomsCollected: 0,
+        totalPoopLeft: 0,
+        totalObstaclesHit: 0,
+        totalHammerCollected: 0,
+        achievementsUnlocked: 0,
+        skinsUnlocked: 1,
+        lastPlayed: null
+      };
+      this.saveStats();
+    }
+  }
+
+  saveStats() {
+    localStorage.setItem('snakeStats', JSON.stringify(state.stats));
+  }
+
+  showStats() {
+    this.renderStats();
+    this.statsModal.classList.remove('hidden');
+  }
+
+  renderStats() {
+    if (!this.statsContent) return;
+    
+    const stats = state.stats || {};
+    
+    // Форматирование времени
+    const hours = Math.floor(stats.totalTimePlayed / 3600);
+    const minutes = Math.floor((stats.totalTimePlayed % 3600) / 60);
+    const seconds = stats.totalTimePlayed % 60;
+    const timeFormatted = `${hours}ч ${minutes}м ${seconds}с`;
+    
+    // Средняя длина змейки
+    const avgSnakeLength = stats.gamesPlayed > 0 
+      ? Math.round((stats.totalScore + stats.gamesPlayed * 2) / stats.gamesPlayed)
+      : 0;
+    
+    // Процент достижений
+    const totalAchievements = state.achievements?.length || 3;
+    const achievementPercent = stats.achievementsUnlocked > 0
+      ? Math.round((stats.achievementsUnlocked / totalAchievements) * 100)
+      : 0;
+    
+    // Процент скинов
+    const totalSkins = CONFIG.SKINS?.length || 6;
+    const skinPercent = stats.skinsUnlocked > 0
+      ? Math.round((stats.skinsUnlocked / totalSkins) * 100)
+      : 0;
+    
+    this.statsContent.innerHTML = `
+      <div class="stat-card highlight">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value">${stats.bestScore || 0}</div>
+        <div class="stat-label">Лучший счёт</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🎮</div>
+        <div class="stat-value">${stats.gamesPlayed || 0}</div>
+        <div class="stat-label">Игр сыграно</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value">${stats.totalScore || 0}</div>
+        <div class="stat-label">Всего очков</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value">${timeFormatted}</div>
+        <div class="stat-label">Время в игре</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🍎</div>
+        <div class="stat-value">${stats.totalFoodEaten || 0}</div>
+        <div class="stat-label">Съедено еды</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🐍</div>
+        <div class="stat-value">${avgSnakeLength}</div>
+        <div class="stat-label">Средняя длина</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🧹</div>
+        <div class="stat-value">${stats.totalBroomsCollected || 0}</div>
+        <div class="stat-label">Собрано метл</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">💩</div>
+        <div class="stat-value">${stats.totalPoopLeft || 0}</div>
+        <div class="stat-label">Оставлено куч</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🔨</div>
+        <div class="stat-value">${stats.totalHammerCollected || 0}</div>
+        <div class="stat-label">Собрано молотов</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🪨</div>
+        <div class="stat-value">${stats.totalObstaclesHit || 0}</div>
+        <div class="stat-label">Ударов о камни</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🏅</div>
+        <div class="stat-value">${achievementPercent}%</div>
+        <div class="stat-label">Достижения</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">🎨</div>
+        <div class="stat-value">${skinPercent}%</div>
+        <div class="stat-label">Скины открыты</div>
+      </div>
+    `;
+  }
+
+  updateStats(action, value = 1) {
+    if (!state.stats) this.initStats();
+    
+    switch(action) {
+      case 'game_start':
+        state.stats.gamesPlayed = (state.stats.gamesPlayed || 0) + 1;
+        state.stats.lastPlayed = new Date().toISOString();
+        break;
+      case 'score':
+        state.stats.totalScore = (state.stats.totalScore || 0) + value;
+        if (value > (state.stats.bestScore || 0)) {
+          state.stats.bestScore = value;
+        }
+        break;
+      case 'time':
+        state.stats.totalTimePlayed = (state.stats.totalTimePlayed || 0) + value;
+        break;
+      case 'food':
+        state.stats.totalFoodEaten = (state.stats.totalFoodEaten || 0) + value;
+        break;
+      case 'broom':
+        state.stats.totalBroomsCollected = (state.stats.totalBroomsCollected || 0) + value;
+        break;
+      case 'poop':
+        state.stats.totalPoopLeft = (state.stats.totalPoopLeft || 0) + value;
+        break;
+      case 'obstacle':
+        state.stats.totalObstaclesHit = (state.stats.totalObstaclesHit || 0) + value;
+        break;
+      case 'hammer':
+        state.stats.totalHammerCollected = (state.stats.totalHammerCollected || 0) + value;
+        break;
+      case 'achievement':
+        state.stats.achievementsUnlocked = (state.stats.achievementsUnlocked || 0) + value;
+        break;
+      case 'skin':
+        state.stats.skinsUnlocked = (state.stats.skinsUnlocked || 0) + value;
+        break;
+    }
+    
+    this.saveStats();
+  }
+
+  resetStats() {
+    if (confirm('Точно сбросить всю статистику? Это действие необратимо!')) {
+      state.stats = {
+        gamesPlayed: 0,
+        totalScore: 0,
+        bestScore: 0,
+        totalTimePlayed: 0,
+        totalFoodEaten: 0,
+        totalBroomsCollected: 0,
+        totalPoopLeft: 0,
+        totalObstaclesHit: 0,
+        totalHammerCollected: 0,
+        achievementsUnlocked: 0,
+        skinsUnlocked: 1,
+        lastPlayed: null
+      };
+      this.saveStats();
+      this.renderStats();
+      this.showNotification('📊 Статистика сброшена');
+    }
+  }
+
   resizeCanvas() {
     const maxSize = Math.min(
       window.innerWidth * 0.95,
@@ -954,6 +1177,10 @@ export default class Game {
     this.foodEaten = 0;
     this.broomsCollected = 0;
     this.gameStartTime = Date.now();
+    this.lastStatsUpdate = Date.now();
+    
+    // Обновляем статистику
+    this.updateStats('game_start');
     
     // Скрываем экран смерти если есть
     const gameOverScreen = document.getElementById('gameOverScreen');
@@ -1041,6 +1268,9 @@ togglePause() {
     
     // Проверяем разблокировку скинов
     this.checkSkinUnlocks(state.score);
+    
+    // Обновляем статистику
+    this.updateStats('score', state.score);
     
     // Обновляем рекорд в меню
     this.updateMenuHighScore();
