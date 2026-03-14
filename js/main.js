@@ -1,6 +1,6 @@
 import Game from './core/Game.js';
-import { CONFIG } from './utils/config.js';
-import { initInput } from './core/Input.js';
+import { CONFIG } from '../utils/config.js';
+import { initInput } from './Input.js';
 
 function initGame() {
   const canvas = document.getElementById('gameCanvas');
