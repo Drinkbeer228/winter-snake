@@ -14,87 +14,72 @@
   <canvas id="gameCanvas" class="hidden"></canvas>
   
   <!-- Главное меню -->
-  <div id="mainMenu" class="menu">
+  <div id="mainMenu">
     <h1>🐍 Winter Snake</h1>
-    
-    <div class="setting">
-      <label>Громкость: <span id="volumeValue">50</span>%</label>
-      <input type="range" id="volumeSlider" min="0" max="100" value="50">
-    </div>
-    
-    <div class="setting">
-      <label>Сложность:</label>
-      <select id="difficultySelect">
-        <option value="easy">Лёгкая</option>
-        <option value="normal" selected>Норм</option>
-        <option value="hard">Сложная</option>
-      </select>
-    </div>
-    
-    <button id="startBtn">Начать игру</button>
-    
-    <button id="leaderboardBtn" class="secondary">🏆 Таблица лидеров</button>
-    
-    <button id="skinsBtn" class="secondary">🎨 Скины</button>
-    
-    <button id="dailyBtn" class="secondary">📅 Ежедневные</button>
-    
-    <button id="statsBtn" class="secondary">📊 Статистика</button>
-    
-    <div class="highscore-display">
-      <p>Рекорд: <span id="menuHighScore">0</span></p>
+    <div class="menu-content">
+      <div class="difficulty-section">
+        <label for="difficultySelect">Сложность:</label>
+        <select id="difficultySelect">
+          <option value="easy">Легко</option>
+          <option value="normal" selected>Нормально</option>
+          <option value="hard">Сложно</option>
+        </select>
+        <div class="volume-section">
+          <label for="volumeSlider">🔊 Громкость:</label>
+          <input type="range" id="volumeSlider" min="0" max="100" value="50">
+          <span id="volumeValue">50</span>
+        </div>
+      </div>
+      
+      <button id="startBtn">Начать игру</button>
+      
+      <div class="menu-buttons">
+        <button id="leaderboardBtn" class="secondary">🏆 Таблица лидеров</button>
+        <button id="skinsBtn" class="secondary">🎨 Скины</button>
+        <button id="dailyBtn" class="secondary">📅 Ежедневные</button>
+        <button id="statsBtn" class="secondary">📊 Статистика</button>
+      </div>
+      
+      <div class="high-score-section">
+        <p>Лучший счёт: <span id="menuHighScore">0</span></p>
+      </div>
     </div>
   </div>
   
-  <!-- Окно статистики -->
+  <!-- Модальные окна -->
+  <!-- Таблица лидеров -->
+  <div id="leaderboardModal" class="modal hidden">
+    <h2>🏆 Таблица лидеров</h2>
+    <div id="leaderboardList"></div>
+    <button id="clearLeaderboardBtn" class="danger">Очистить</button>
+    <button id="closeLeaderboardBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <!-- Скины -->
+  <div id="skinsModal" class="modal hidden">
+    <h2>🎨 Скины</h2>
+    <div id="skinsList"></div>
+    <button id="closeSkinsBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <!-- Ежедневные челленджи -->
+  <div id="dailyModal" class="modal hidden">
+    <h2>📅 Ежедневные задания</h2>
+    <div id="dailyList"></div>
+    <p id="dailyTimer"></p>
+    <p id="dailyTotalReward"></p>
+    <button id="closeDailyBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <!-- Статистика -->
   <div id="statsModal" class="modal hidden">
     <h2>📊 Статистика игрока</h2>
-    <div id="statsContent" class="stats-content">
-      <!-- Сюда вставляется статистика -->
-    </div>
+    <div id="statsContent" class="stats-content"></div>
     <button id="resetStatsBtn" class="danger">Сбросить статистику</button>
     <button id="closeStatsBtn" class="secondary">Закрыть</button>
   </div>
   
-  <!-- Окно ежедневных заданий -->
-  <div id="dailyModal" class="modal hidden">
-    <h2>📅 Ежедневные челленджи</h2>
-    <div id="dailyReset" class="daily-reset">
-      Сброс через: <span id="dailyTimer">--:--:--</span>
-    </div>
-    <div id="dailyList" class="daily-list">
-      <!-- Сюда вставляются задания -->
-    </div>
-    <div class="daily-reward">
-      Награда за все: <span id="dailyTotalReward">0</span> очков
-    </div>
-    <button id="closeDailyBtn" class="secondary">Закрыть</button>
-  </div>
-  
-  <!-- Окно выбора скинов -->
-  <div id="skinsModal" class="modal hidden">
-    <h2>🎨 Скины змейки</h2>
-    <div id="skinsList" class="skins-list">
-      <!-- Сюда вставляются скины -->
-    </div>
-    <button id="closeSkinsBtn" class="secondary">Закрыть</button>
-  </div>
-  
-  <!-- Окно таблицы лидеров -->
-  <div id="leaderboardModal" class="modal hidden">
-    <h2>🏆 Таблица лидеров</h2>
-    <div id="leaderboardList" class="leaderboard-list">
-      <!-- Сюда вставляются результаты -->
-    </div>
-    <button id="clearLeaderboardBtn" class="danger">Сбросить</button>
-    <button id="closeLeaderboardBtn" class="secondary">Закрыть</button>
-  </div>
-  
-  <div id="pauseOverlay" class="hidden">
-    <h2>ПАУЗА</h2>
-    <p>Нажми Space для продолжения</p>
-  </div>
-  
+  <!-- Экран смерти -->
   <div id="gameOverScreen" class="hidden">
     <h2>Game Over</h2>
     <p>Счёт: <span id="finalScore">0</span></p>
@@ -103,6 +88,12 @@
     <p class="hint">Нажми R или кнопку для рестарта</p>
   </div>
   
-  <script type="module" src="./js/main.js"></script>
+  <!-- Оверлей паузы -->
+  <div id="pauseOverlay" class="hidden">
+    <h2>ПАУЗА</h2>
+    <p>Нажми Space или Esc для продолжения</p>
+  </div>
+  
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

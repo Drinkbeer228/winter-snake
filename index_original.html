@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="scoreDisplay" class="hidden">Счёт: 0</div>
+  <div id="highScoreDisplay" class="hidden">Рекорд: 0</div>
+  <div id="speedDisplay" class="hidden">Скорость: 1x</div>
+  <button id="muteBtn" class="mute-button">🔊</button>
+  <canvas id="gameCanvas" class="hidden"></canvas>
+  
+  <!-- Главное меню -->
+  <div id="mainMenu" class="menu">
+    <h1>🐍 Winter Snake</h1>
+    
+    <div class="setting">
+      <label>Громкость: <span id="volumeValue">50</span>%</label>
+      <input type="range" id="volumeSlider" min="0" max="100" value="50">
+    </div>
+    
+    <div class="setting">
+      <label>Сложность:</label>
+      <select id="difficultySelect">
+        <option value="easy">Лёгкая</option>
+        <option value="normal" selected>Норм</option>
+        <option value="hard">Сложная</option>
+      </select>
+    </div>
+    
+    <button id="startBtn">Начать игру</button>
+    
+    <button id="leaderboardBtn" class="secondary">🏆 Таблица лидеров</button>
+    
+    <button id="skinsBtn" class="secondary">🎨 Скины</button>
+    
+    <button id="dailyBtn" class="secondary">📅 Ежедневные</button>
+    
+    <button id="statsBtn" class="secondary">📊 Статистика</button>
+    
+    <div class="highscore-display">
+      <p>Рекорд: <span id="menuHighScore">0</span></p>
+    </div>
+  </div>
+  
+  <!-- Окно статистики -->
+  <div id="statsModal" class="modal hidden">
+    <h2>📊 Статистика игрока</h2>
+    <div id="statsContent" class="stats-content">
+      <!-- Сюда вставляется статистика -->
+    </div>
+    <button id="resetStatsBtn" class="danger">Сбросить статистику</button>
+    <button id="closeStatsBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <!-- Окно ежедневных заданий -->
+  <div id="dailyModal" class="modal hidden">
+    <h2>📅 Ежедневные челленджи</h2>
+    <div id="dailyReset" class="daily-reset">
+      Сброс через: <span id="dailyTimer">--:--:--</span>
+    </div>
+    <div id="dailyList" class="daily-list">
+      <!-- Сюда вставляются задания -->
+    </div>
+    <div class="daily-reward">
+      Награда за все: <span id="dailyTotalReward">0</span> очков
+    </div>
+    <button id="closeDailyBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <!-- Окно выбора скинов -->
+  <div id="skinsModal" class="modal hidden">
+    <h2>🎨 Скины змейки</h2>
+    <div id="skinsList" class="skins-list">
+      <!-- Сюда вставляются скины -->
+    </div>
+    <button id="closeSkinsBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <!-- Окно таблицы лидеров -->
+  <div id="leaderboardModal" class="modal hidden">
+    <h2>🏆 Таблица лидеров</h2>
+    <div id="leaderboardList" class="leaderboard-list">
+      <!-- Сюда вставляются результаты -->
+    </div>
+    <button id="clearLeaderboardBtn" class="danger">Сбросить</button>
+    <button id="closeLeaderboardBtn" class="secondary">Закрыть</button>
+  </div>
+  
+  <div id="pauseOverlay" class="hidden">
+    <h2>ПАУЗА</h2>
+    <p>Нажми Space для продолжения</p>
+  </div>
+  
+  <div id="gameOverScreen" class="hidden">
+    <h2>Game Over</h2>
+    <p>Счёт: <span id="finalScore">0</span></p>
+    <p>Рекорд: <span id="finalHighScore">0</span></p>
+    <button id="restartBtn">Играть снова</button>
+    <p class="hint">Нажми R или кнопку для рестарта</p>
+  </div>
+  
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
