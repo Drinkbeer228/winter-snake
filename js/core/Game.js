@@ -662,4 +662,75 @@ export default class Game {
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2000);
   }
+
+  addToLeaderboard(score) {
+    const entry = {
+      score: score,
+      date: new Date().toISOString(),
+      id: Date.now()
+    };
+    
+    state.leaderboard.push(entry);
+    state.leaderboard.sort((a, b) => b.score - a.score);
+    state.leaderboard = state.leaderboard.slice(0, 10);
+    
+    localStorage.setItem('snakeLeaderboard', JSON.stringify(state.leaderboard));
+  }
+
+  checkSkinUnlocks(score) {
+    const unlockedSkins = state.unlockedSkins || ['classic'];
+    
+    CONFIG.SKINS.forEach(skin => {
+      if (score >= skin.unlockAt && !unlockedSkins.includes(skin.id)) {
+        unlockedSkins.push(skin.id);
+        state.unlockedSkins = unlockedSkins;
+        localStorage.setItem('unlockedSkins', JSON.stringify(unlockedSkins));
+        this.showNotification(`🎨 Открыт скин: ${skin.name}!`);
+      }
+    });
+  }
+
+  updateStats(type, value) {
+    const stats = state.stats || {};
+    
+    switch(type) {
+      case 'game_start':
+        stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
+        stats.lastPlayed = new Date().toISOString();
+        break;
+      case 'score':
+        stats.totalScore = (stats.totalScore || 0) + value;
+        if (value > (stats.bestScore || 0)) {
+          stats.bestScore = value;
+        }
+        break;
+      case 'time':
+        stats.totalTimePlayed = (stats.totalTimePlayed || 0) + value;
+        break;
+      case 'food':
+        stats.totalFoodEaten = (stats.totalFoodEaten || 0) + value;
+        break;
+      case 'broom':
+        stats.totalBroomsCollected = (stats.totalBroomsCollected || 0) + value;
+        break;
+      case 'poop':
+        stats.totalPoopLeft = (stats.totalPoopLeft || 0) + value;
+        break;
+      case 'obstacle':
+        stats.totalObstaclesHit = (stats.totalObstaclesHit || 0) + value;
+        break;
+      case 'hammer':
+        stats.totalHammerCollected = (stats.totalHammerCollected || 0) + value;
+        break;
+      case 'achievement':
+        stats.achievementsUnlocked = (stats.achievementsUnlocked || 0) + value;
+        break;
+      case 'skin':
+        stats.skinsUnlocked = (stats.skinsUnlocked || 0) + value;
+        break;
+    }
+    
+    state.stats = stats;
+    localStorage.setItem('snakeStats', JSON.stringify(stats));
+  }
 }
