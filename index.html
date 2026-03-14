@@ -7,11 +7,36 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="scoreDisplay">Счёт: 0</div>
-  <div id="highScoreDisplay">Рекорд: 0</div>
-  <div id="speedDisplay">Скорость: 1x</div>
+  <div id="scoreDisplay" class="hidden">Счёт: 0</div>
+  <div id="highScoreDisplay" class="hidden">Рекорд: 0</div>
+  <div id="speedDisplay" class="hidden">Скорость: 1x</div>
   <button id="muteBtn" class="mute-button">🔊</button>
-  <canvas id="gameCanvas"></canvas>
+  <canvas id="gameCanvas" class="hidden"></canvas>
+  
+  <!-- Главное меню -->
+  <div id="mainMenu" class="menu">
+    <h1>🐍 Winter Snake</h1>
+    
+    <div class="setting">
+      <label>Громкость: <span id="volumeValue">50</span>%</label>
+      <input type="range" id="volumeSlider" min="0" max="100" value="50">
+    </div>
+    
+    <div class="setting">
+      <label>Сложность:</label>
+      <select id="difficultySelect">
+        <option value="easy">Лёгкая</option>
+        <option value="normal" selected>Норм</option>
+        <option value="hard">Сложная</option>
+      </select>
+    </div>
+    
+    <button id="startBtn">Начать игру</button>
+    
+    <div class="highscore-display">
+      <p>Рекорд: <span id="menuHighScore">0</span></p>
+    </div>
+  </div>
   
   <div id="pauseOverlay" class="hidden">
     <h2>ПАУЗА</h2>

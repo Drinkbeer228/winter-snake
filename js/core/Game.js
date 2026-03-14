@@ -16,13 +16,13 @@ export default class Game {
     this.canvas.width = CONFIG.CANVAS_SIZE;
     this.canvas.height = CONFIG.CANVAS_SIZE;
     
-    this.snake = new Snake();
-    this.renderer = new Renderer(this.ctx);
-    this.lastUpdate = 0;
-    this.frameCount = 0; // для движения еды
-    this.poopTimer = 0;  // для оставления куч
-    this.broomTimer = 0; // для спавна метлы
-    this.hammerTimer = 0; // для спавна молота
+    // Меню
+    this.mainMenu = document.getElementById('mainMenu');
+    this.startBtn = document.getElementById('startBtn');
+    this.volumeSlider = document.getElementById('volumeSlider');
+    this.difficultySelect = document.getElementById('difficultySelect');
+    this.volumeValue = document.getElementById('volumeValue');
+    this.menuHighScore = document.getElementById('menuHighScore');
     
     // Элементы экрана смерти
     this.gameOverScreen = document.getElementById('gameOverScreen');
@@ -38,6 +38,23 @@ export default class Game {
     
     // Кнопка Mute
     this.muteBtn = document.getElementById('muteBtn');
+    
+    // Загрузка настроек и инициализация
+    this.loadSettings();
+    this.updateMenuHighScore();
+    this.resizeCanvas();
+    
+    // Обработчики меню
+    this.setupMenuHandlers();
+    
+    // Инициализация змейки и рендерера
+    this.snake = new Snake();
+    this.renderer = new Renderer(this.ctx);
+    this.lastUpdate = 0;
+    this.frameCount = 0; // для движения еды
+    this.poopTimer = 0;  // для оставления куч
+    this.broomTimer = 0; // для спавна метлы
+    this.hammerTimer = 0; // для спавна молота
     
     // Обработчик кнопки рестарта
     this.restartBtn.addEventListener('click', () => {
@@ -63,15 +80,11 @@ export default class Game {
       }
     });
     
-    // Инициализация отображения счёта
-    this.updateScoreDisplay();
-    this.updateSpeedDisplay();
-    this.loadAchievements();
-    this.loadMuteState();
-    this.resizeCanvas();
-    
     // Обработчик изменения размера окна
     window.addEventListener('resize', () => this.resizeCanvas());
+    
+    // Игра не запущена сразу
+    state.isRunning = false;
   }
 
   start() {
@@ -432,6 +445,80 @@ export default class Game {
     this.updateMuteButton();
   }
 
+  setupMenuHandlers() {
+    this.startBtn.addEventListener('click', () => {
+      this.startGameFromMenu();
+    });
+    
+    this.volumeSlider.addEventListener('input', (e) => {
+      CONFIG.volume = e.target.value / 100;
+      this.volumeValue.textContent = e.target.value;
+      this.saveSettings();
+    });
+    
+    this.difficultySelect.addEventListener('change', (e) => {
+      this.setDifficulty(e.target.value);
+      this.saveSettings();
+    });
+  }
+
+  loadSettings() {
+    const saved = localStorage.getItem('snakeSettings');
+    if (saved) {
+      const settings = JSON.parse(saved);
+      CONFIG.volume = settings.volume || 0.5;
+      this.volumeSlider.value = CONFIG.volume * 100;
+      this.volumeValue.textContent = Math.round(CONFIG.volume * 100);
+      this.difficultySelect.value = settings.difficulty || 'normal';
+      this.setDifficulty(settings.difficulty);
+    }
+  }
+
+  saveSettings() {
+    localStorage.setItem('snakeSettings', JSON.stringify({
+      volume: CONFIG.volume,
+      difficulty: this.difficultySelect.value
+    }));
+  }
+
+  setDifficulty(diff) {
+    if (diff === 'easy') {
+      CONFIG.INITIAL_SPEED = 500;
+      CONFIG.SPEED_MULTIPLIER = 0.95;
+    } else if (diff === 'normal') {
+      CONFIG.INITIAL_SPEED = 400;
+      CONFIG.SPEED_MULTIPLIER = 0.9;
+    } else if (diff === 'hard') {
+      CONFIG.INITIAL_SPEED = 300;
+      CONFIG.SPEED_MULTIPLIER = 0.85;
+    }
+    state.gameSpeed = CONFIG.INITIAL_SPEED;
+  }
+
+  startGameFromMenu() {
+    this.mainMenu.classList.add('hidden');
+    
+    // Показываем игровые элементы
+    document.getElementById('scoreDisplay').classList.remove('hidden');
+    document.getElementById('highScoreDisplay').classList.remove('hidden');
+    document.getElementById('speedDisplay').classList.remove('hidden');
+    document.getElementById('gameCanvas').classList.remove('hidden');
+    
+    this.reset();
+    this.loadAchievements();
+    this.loadMuteState();
+    this.updateScoreDisplay();
+    this.updateSpeedDisplay();
+    state.isRunning = true;
+    this.gameLoop();
+  }
+
+  updateMenuHighScore() {
+    if (this.menuHighScore) {
+      this.menuHighScore.textContent = state.highScore;
+    }
+  }
+
   resizeCanvas() {
     const maxSize = Math.min(
       window.innerWidth * 0.95,
@@ -559,9 +646,30 @@ export default class Game {
       localStorage.setItem('snakeHighScore', state.highScore);
     }
     
+    // Обновляем рекорд в меню
+    this.updateMenuHighScore();
+    
     // Показываем экран смерти
     this.finalScoreEl.textContent = state.score;
     this.finalHighScoreEl.textContent = state.highScore;
     this.gameOverScreen.classList.remove('hidden');
+    
+    // Через 3 секунды возвращаем в меню
+    setTimeout(() => {
+      this.gameOverScreen.classList.add('hidden');
+      this.returnToMenu();
+    }, 3000);
+  }
+
+  returnToMenu() {
+    // Скрываем игровые элементы
+    document.getElementById('scoreDisplay').classList.add('hidden');
+    document.getElementById('highScoreDisplay').classList.add('hidden');
+    document.getElementById('speedDisplay').classList.add('hidden');
+    document.getElementById('gameCanvas').classList.add('hidden');
+    
+    // Показываем меню
+    this.mainMenu.classList.remove('hidden');
+    this.updateMenuHighScore();
   }
 }
