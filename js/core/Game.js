@@ -12,11 +12,11 @@ export default class Game {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     
-    // Устанавливаем реальные размеры канваса
+    // Ustanavlivaem real'nye razmery kanvasa
     this.canvas.width = CONFIG.CANVAS_SIZE;
     this.canvas.height = CONFIG.CANVAS_SIZE;
     
-    // Меню
+    
     this.mainMenu = document.getElementById('mainMenu');
     this.startBtn = document.getElementById('startBtn');
     this.volumeSlider = document.getElementById('volumeSlider');
@@ -24,35 +24,35 @@ export default class Game {
     this.volumeValue = document.getElementById('volumeValue');
     this.menuHighScore = document.getElementById('menuHighScore');
     
-    // Элементы экрана смерти
+    // Elementy ekrana smerti
     this.gameOverScreen = document.getElementById('gameOverScreen');
     this.finalScoreEl = document.getElementById('finalScore');
     this.finalHighScoreEl = document.getElementById('finalHighScore');
     this.restartBtn = document.getElementById('restartBtn');
     
-    // Элемент оверлея паузы
+    // Element overley pauzy
     this.pauseOverlay = document.getElementById('pauseOverlay');
     
-    // Элемент индикатора скорости
+    // Element indikatora skorosti
     this.speedDisplay = document.getElementById('speedDisplay');
     
-    // Кнопка Mute
+    
     this.muteBtn = document.getElementById('muteBtn');
     
-    // Кнопки таблицы лидеров
+    
     this.leaderboardBtn = document.getElementById('leaderboardBtn');
     this.leaderboardModal = document.getElementById('leaderboardModal');
     this.leaderboardList = document.getElementById('leaderboardList');
     this.clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
     this.closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
     
-    // Кнопки скинов
+    
     this.skinsBtn = document.getElementById('skinsBtn');
     this.skinsModal = document.getElementById('skinsModal');
     this.skinsList = document.getElementById('skinsList');
     this.closeSkinsBtn = document.getElementById('closeSkinsBtn');
     
-    // Кнопки ежедневных челленджей
+    
     this.dailyBtn = document.getElementById('dailyBtn');
     this.dailyModal = document.getElementById('dailyModal');
     this.dailyList = document.getElementById('dailyList');
@@ -60,19 +60,19 @@ export default class Game {
     this.dailyTotalReward = document.getElementById('dailyTotalReward');
     this.closeDailyBtn = document.getElementById('closeDailyBtn');
     
-    // Кнопки статистики
+    
     this.statsBtn = document.getElementById('statsBtn');
     this.statsModal = document.getElementById('statsModal');
     this.statsContent = document.getElementById('statsContent');
     this.resetStatsBtn = document.getElementById('resetStatsBtn');
     this.closeStatsBtn = document.getElementById('closeStatsBtn');
     
-    // Загрузка настроек и инициализация
+    
     this.loadSettings();
     this.updateMenuHighScore();
     this.resizeCanvas();
     
-    // Обработчики меню
+    
     this.setupMenuHandlers();
     this.setupLeaderboardHandlers();
     this.setupSkinsHandlers();
@@ -81,52 +81,52 @@ export default class Game {
     this.updateLeaderboardDisplay();
     this.renderSkinsList();
     
-    // Инициализация ежедневных челленджей
+    
     this.checkDailyReset();
     this.renderDailyChallenges();
     this.startDailyTimer();
     
-    // Инициализация статистики
+    
     this.initStats();
     this.renderStats();
     
-    // Инициализация змейки и рендерера
+    
     this.snake = new Snake();
     this.renderer = new Renderer(this.ctx);
     this.lastUpdate = 0;
-    this.frameCount = 0; // для движения еды
-    this.poopTimer = 0;  // для оставления куч
-    this.broomTimer = 0; // для спавна метлы
-    this.hammerTimer = 0; // для спавна молота
+    this.frameCount = 0; 
+    this.poopTimer = 0;  
+    this.broomTimer = 0; 
+    this.hammerTimer = 0; 
     
-    // Обработчик кнопки рестарта
+    
     this.restartBtn.addEventListener('click', () => {
       this.reset();
     });
     
-    // Обработчик кнопки Mute
+    
     this.muteBtn.addEventListener('click', () => {
       this.toggleMute();
     });
     
-    // Обработчики клавиш для паузы и рестарта
+    
     document.addEventListener('keydown', (e) => {
-      // Пауза
+      
       if ((e.code === 'Space' || e.code === 'Escape') && state.isRunning) {
         e.preventDefault();
         this.togglePause();
       }
       
-      // Рестарт
+      
       if (e.code === 'KeyR' && !state.isRunning && !this.gameOverScreen.classList.contains('hidden')) {
         this.reset();
       }
     });
     
-    // Обработчик изменения размера окна
+    
     window.addEventListener('resize', () => this.resizeCanvas());
     
-    // Игра не запущена сразу
+    
     state.isRunning = false;
   }
 
@@ -138,13 +138,13 @@ export default class Game {
   gameLoop() {
     if (!state.isRunning) return;
     
-    // Проверка паузы
+    
     if (state.isPaused) {
       requestAnimationFrame(() => this.gameLoop());
       return;
     }
     
-    // Таймер чая
+    
     if (state.hasTea) {
       state.teaTimer--;
       if (state.teaTimer <= 0) {
@@ -171,25 +171,25 @@ export default class Game {
     this.broomTimer++;
     this.hammerTimer++;
     
-    // Оставляем кучи после 3 очков
+    
     if (this.poopTimer >= state.poopInterval && state.score >= 3) {
       this.addPoop();
       this.poopTimer = 0;
     }
     
-    // Спавн метлы (каждые 200 кадров, если есть кучи)
+    
     if (this.broomTimer >= 200 && state.poop.length > 0 && !state.broom) {
       this.spawnBroom();
       this.broomTimer = 0;
     }
     
-    // Спавн молота (каждые 300 кадров, если есть препятствия)
+    
     if (this.hammerTimer >= 300 && state.obstacles.length > 0 && !state.hammer) {
       this.spawnHammer();
       this.hammerTimer = 0;
     }
     
-    // Проверка коллизий с метлой
+    
     if (state.broom) {
       const head = this.snake.segments[0];
       if (head.x === state.broom.x && head.y === state.broom.y) {
@@ -197,7 +197,7 @@ export default class Game {
       }
     }
     
-    // Проверка коллизий с молотом
+    
     if (state.hammer) {
       const head = this.snake.segments[0];
       if (head.x === state.hammer.x && head.y === state.hammer.y) {
@@ -205,7 +205,7 @@ export default class Game {
       }
     }
     
-    // Спавн препятствий (каждые 10 очков)
+    
     if (state.score > 0 && state.score % state.obstacleInterval === 0) {
       const lastObstacleScore = state.obstacles.length * state.obstacleInterval;
       if (state.score === lastObstacleScore + state.obstacleInterval) {
@@ -213,19 +213,19 @@ export default class Game {
       }
     }
     
-    // Проверка коллизий с препятствиями
+    
     if (this.checkObstacleCollision()) {
       this.gameOver();
     }
     
-    // Движение еды после 5 очков
+    
     if (state.score >= 5 && state.food) {
-      if (this.frameCount % 30 === 0) { // каждые 30 кадров
+      if (this.frameCount % 30 === 0) { // kazhdye 30 kadrov
         this.moveFood();
       }
     }
     
-    // Проверка еды
+    
     if (state.food) {
       const head = this.snake.segments[0];
       if (head.x === state.food.x && head.y === state.food.y) {
@@ -235,19 +235,19 @@ export default class Game {
         this.checkSpeedIncrease();
         this.checkAchievements();
         
-        // Проверка на 50 очков (Postal 2 чай)
+        
         if (state.score === 50 && !state.hasTea) {
           this.activateTea();
         }
         
-        // Активация анимации роста
-        state.isEating = true;
-        state.eatTimer = 5; // 5 кадров анимации
         
-        // Звук поедания
+        state.isEating = true;
+        state.eatTimer = 5; 
+        
+        
         playSound('eat');
         
-        // Всплеск частиц при поедании
+        
         spawnParticles(
           state.food.x + CONFIG.GRID/2, 
           state.food.y + CONFIG.GRID/2, 
@@ -259,7 +259,7 @@ export default class Game {
       }
     }
     
-    // Проверка коллизий
+    
     if (this.snake.checkSelfCollision() || 
         this.snake.checkWallCollision(this.canvas.width, this.canvas.height)) {
       this.gameOver();
@@ -276,7 +276,7 @@ export default class Game {
     this.renderer.drawSnake(this.snake.segments, this.snake.direction);
     this.renderer.drawFood(state.food);
     
-    // Обновление и отрисовка частиц
+    
     updateAndDrawParticles(this.ctx);
   }
 
@@ -309,7 +309,7 @@ export default class Game {
     const newX = state.food.x + dir.x;
     const newY = state.food.y + dir.y;
     
-    // Проверка границ
+    
     if (newX >= 0 && newX < this.canvas.width && 
         newY >= 0 && newY < this.canvas.height) {
       state.food.x = newX;
@@ -337,8 +337,8 @@ export default class Game {
 
   collectBroom() {
     state.broom = null;
-    state.poop = [];  // очищаем все кучи
-    state.score += 1; // бонусное очко
+    state.poop = [];  
+    state.score += 1; 
   }
 
   spawnObstacle() {
@@ -352,29 +352,29 @@ export default class Game {
       type: 'stone'
     };
     
-    // Проверка: не на змейке, не на еде, не на другой преграде, не на метле
+    
     if (!this.isPositionOccupied(newObstacle)) {
       state.obstacles.push(newObstacle);
     }
   }
 
   isPositionOccupied(pos) {
-    // Проверка на змейке
+    
     if (this.snake.segments.some(seg => seg.x === pos.x && seg.y === pos.y)) {
       return true;
     }
     
-    // Проверка на еде
+    
     if (state.food && state.food.x === pos.x && state.food.y === pos.y) {
       return true;
     }
     
-    // Проверка на других препятствиях
+    
     if (state.obstacles.some(obs => obs.x === pos.x && obs.y === pos.y)) {
       return true;
     }
     
-    // Проверка на метле
+    
     if (state.broom && state.broom.x === pos.x && state.broom.y === pos.y) {
       return true;
     }
@@ -404,21 +404,21 @@ export default class Game {
     state.hammer = null;
     state.hasHammer = true;
     
-    // Удаляем последний камень (или все)
+    
     if (state.obstacles.length > 0) {
       state.obstacles.pop();
     }
     
-    // Молот используется сразу
-    setTimeout(() => { state.hasHammer = false; }, 5000); // 5 сек действия
+    
+    setTimeout(() => { state.hasHammer = false; }, 5000); 
   }
 
   activateTea() {
     state.hasTea = true;
-    state.teaTimer = 300;  // 5 секунд при 60 FPS
-    state.gameSpeed = 50;  // Максимальная скорость
+    state.teaTimer = 300;  
+    state.gameSpeed = 50;  
     
-    // Уведомление
+    
     const el = document.createElement('div');
     el.textContent = '☕ ЧАЕЧКА! УСКОРЕНИЕ!';
     el.style.cssText = `
@@ -541,7 +541,7 @@ export default class Game {
   startGameFromMenu() {
     this.mainMenu.classList.add('hidden');
     
-    // Показываем игровые элементы
+    
     document.getElementById('scoreDisplay').classList.remove('hidden');
     document.getElementById('highScoreDisplay').classList.remove('hidden');
     document.getElementById('speedDisplay').classList.remove('hidden');
@@ -612,11 +612,11 @@ export default class Game {
       date: new Date().toISOString()
     });
     
-    // Сортируем и оставляем топ-10
+    
     state.leaderboard.sort((a, b) => b.score - a.score);
     state.leaderboard = state.leaderboard.slice(0, 10);
     
-    // Сохраняем
+    
     localStorage.setItem('snakeLeaderboard', JSON.stringify(state.leaderboard));
   }
 
@@ -665,7 +665,7 @@ export default class Game {
       `;
     }).join('');
     
-    // Обработчики кликов
+    
     this.skinsList.querySelectorAll('.skin-card').forEach(card => {
       card.addEventListener('click', () => {
         const skinId = card.dataset.skinId;
@@ -683,7 +683,7 @@ export default class Game {
     const unlockedSkins = state.unlockedSkins || ['classic'];
     
     if (!unlockedSkins.includes(skinId)) {
-      // Скин заблокирован
+      
       return;
     }
     
@@ -705,7 +705,7 @@ export default class Game {
         this.showNotification(`🎨 Открыт скин: ${skin.name}!`);
       }
       
-      // Секретный скин "ЧАЕЧКА" открывается при активации чая
+      
       if (skin.id === 'postal' && state.hasTea && !unlockedSkins.includes(skin.id)) {
         unlockedSkins.push(skin.id);
         changed = true;
@@ -755,7 +755,7 @@ export default class Game {
     const savedDate = localStorage.getItem('snakeDailyDate');
     
     if (savedDate !== today) {
-      // Новый день — сбрасываем челленджи
+      
       this.generateDailyChallenges();
       localStorage.setItem('snakeDailyDate', today);
       state.dailyChallenges.date = today;
@@ -765,7 +765,7 @@ export default class Game {
   }
 
   generateDailyChallenges() {
-    // Выбираем 3 случайных задания
+    
     const shuffled = [...CONFIG.DAILY_CHALLENGES].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 3);
     
@@ -914,24 +914,24 @@ export default class Game {
     
     const stats = state.stats || {};
     
-    // Форматирование времени
+    
     const hours = Math.floor(stats.totalTimePlayed / 3600);
     const minutes = Math.floor((stats.totalTimePlayed % 3600) / 60);
     const seconds = stats.totalTimePlayed % 60;
     const timeFormatted = `${hours}ч ${minutes}м ${seconds}с`;
     
-    // Средняя длина змейки
+    
     const avgSnakeLength = stats.gamesPlayed > 0 
       ? Math.round((stats.totalScore + stats.gamesPlayed * 2) / stats.gamesPlayed)
       : 0;
     
-    // Процент достижений
+    
     const totalAchievements = state.achievements?.length || 3;
     const achievementPercent = stats.achievementsUnlocked > 0
       ? Math.round((stats.achievementsUnlocked / totalAchievements) * 100)
       : 0;
     
-    // Процент скинов
+    
     const totalSkins = CONFIG.SKINS?.length || 6;
     const skinPercent = stats.skinsUnlocked > 0
       ? Math.round((stats.skinsUnlocked / totalSkins) * 100)
@@ -1083,14 +1083,14 @@ export default class Game {
       window.innerHeight * 0.85
     );
     
-    // Округляем до кратного CONFIG.GRID
+    
     const size = Math.floor(maxSize / CONFIG.GRID) * CONFIG.GRID;
     
     this.canvas.style.width = `${size}px`;
     this.canvas.style.height = `${size}px`;
     
-    // Внутреннее разрешение остаётся фиксированным
-    // CSS масштабирует отображение
+    
+    
   }
 
   checkSpeedIncrease() {
@@ -1101,7 +1101,7 @@ export default class Game {
         state.gameSpeed * CONFIG.SPEED_MULTIPLIER
       );
       
-      // Показываем уведомление только если скорость реально изменилась
+      
       if (oldSpeed !== state.gameSpeed) {
         this.showSpeedNotification();
         this.updateSpeedDisplay();
@@ -1125,7 +1125,7 @@ export default class Game {
   }
 
   togglePause() {
-    // Нельзя паузить на экране смерти
+    
     if (!this.gameOverScreen.classList.contains('hidden')) {
       return;
     }
@@ -1173,16 +1173,16 @@ export default class Game {
     state.hammer = null;
     state.hasHammer = false;
     
-    // Счётчики для ежедневных челленджей
+    
     this.foodEaten = 0;
     this.broomsCollected = 0;
     this.gameStartTime = Date.now();
     this.lastStatsUpdate = Date.now();
     
-    // Обновляем статистику
+    
     this.updateStats('game_start');
     
-    // Скрываем экран смерти если есть
+    
     const gameOverScreen = document.getElementById('gameOverScreen');
     if (gameOverScreen) {
       gameOverScreen.classList.add('hidden');
@@ -1200,14 +1200,14 @@ export default class Game {
       window.innerHeight * 0.85
     );
     
-    // Округляем до кратного CONFIG.GRID
+    
     const size = Math.floor(maxSize / CONFIG.GRID) * CONFIG.GRID;
     
     this.canvas.style.width = `${size}px`;
     this.canvas.style.height = `${size}px`;
     
-    // Внутреннее разрешение остаётся фиксированным
-    // CSS масштабирует отображение
+    
+    
   }
 
   checkSpeedIncrease() {
@@ -1218,7 +1218,7 @@ export default class Game {
         state.gameSpeed * CONFIG.SPEED_MULTIPLIER
       );
       
-      // Показываем уведомление только если скорость реально изменилась
+      
       if (oldSpeed !== state.gameSpeed) {
         this.showSpeedNotification();
         this.updateSpeedDisplay();
@@ -1227,23 +1227,23 @@ export default class Game {
   }
 }
 
-showSpeedNotification() {
-  const el = document.createElement('div');
-  el.textContent = 'СКОРОСТЬ!';
-  el.style.cssText = `
-    position: fixed; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 32px; color: #FF6B6B;
-    text-shadow: 0 0 10px rgba(255,107,107,0.8);
-    z-index: 300; pointer-events: none;
-    animation: fadeOut 1.5s forwards;
-  `;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1500);
-}
+  showSpeedNotification() {
+    const el = document.createElement('div');
+    el.textContent = 'СКОРОСТЬ!';
+    el.style.cssText = `
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px; color: #FF6B6B;
+      text-shadow: 0 0 10px rgba(255,107,107,0.8);
+      z-index: 300; pointer-events: none;
+      animation: fadeOut 1.5s forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
+  }
 
 togglePause() {
-  // Нельзя паузить на экране смерти
+  
   if (!this.gameOverScreen.classList.contains('hidden')) {
     return;
   }
@@ -1265,24 +1265,24 @@ togglePause() {
       localStorage.setItem('snakeHighScore', state.highScore);
     }
     
-    // Добавляем в таблицу лидеров
+    
     this.addToLeaderboard(state.score);
     
-    // Проверяем разблокировку скинов
+    
     this.checkSkinUnlocks(state.score);
     
-    // Обновляем статистику
+    
     this.updateStats('score', state.score);
     
-    // Обновляем рекорд в меню
+    
     this.updateMenuHighScore();
     
-    // Показываем экран смерти
+    
     this.finalScoreEl.textContent = state.score;
     this.finalHighScoreEl.textContent = state.highScore;
     this.gameOverScreen.classList.remove('hidden');
     
-    // Через 3 секунды возвращаем в меню
+    
     setTimeout(() => {
       this.gameOverScreen.classList.add('hidden');
       this.returnToMenu();
@@ -1290,13 +1290,13 @@ togglePause() {
   }
 
   returnToMenu() {
-    // Скрываем игровые элементы
+    
     document.getElementById('scoreDisplay').classList.add('hidden');
     document.getElementById('highScoreDisplay').classList.add('hidden');
     document.getElementById('speedDisplay').classList.add('hidden');
     document.getElementById('gameCanvas').classList.add('hidden');
     
-    // Показываем меню
+    
     this.mainMenu.classList.remove('hidden');
     this.updateMenuHighScore();
   }
