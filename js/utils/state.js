@@ -24,5 +24,7 @@ export const state = {
     { id: 'first_50', name: 'Опытный', desc: 'Набери 50 очков', threshold: 50, unlocked: false },
     { id: 'master', name: 'Мастер свайпов', desc: 'Набери 100 очков', threshold: 100, unlocked: false }
   ],
-  leaderboard: JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]')
+  leaderboard: JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]'),
+  selectedSkin: localStorage.getItem('snakeSelectedSkin') || 'classic',
+  unlockedSkins: JSON.parse(localStorage.getItem('snakeUnlockedSkins') || '["classic"]')
 };

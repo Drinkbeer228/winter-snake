@@ -46,6 +46,12 @@ export default class Game {
     this.clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
     this.closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
     
+    // Кнопки скинов
+    this.skinsBtn = document.getElementById('skinsBtn');
+    this.skinsModal = document.getElementById('skinsModal');
+    this.skinsList = document.getElementById('skinsList');
+    this.closeSkinsBtn = document.getElementById('closeSkinsBtn');
+    
     // Загрузка настроек и инициализация
     this.loadSettings();
     this.updateMenuHighScore();
@@ -54,7 +60,9 @@ export default class Game {
     // Обработчики меню
     this.setupMenuHandlers();
     this.setupLeaderboardHandlers();
+    this.setupSkinsHandlers();
     this.updateLeaderboardDisplay();
+    this.renderSkinsList();
     
     // Инициализация змейки и рендерера
     this.snake = new Snake();
@@ -594,6 +602,112 @@ export default class Game {
     }
   }
 
+  setupSkinsHandlers() {
+    this.skinsBtn.addEventListener('click', () => {
+      this.showSkins();
+    });
+    
+    this.closeSkinsBtn.addEventListener('click', () => {
+      this.skinsModal.classList.add('hidden');
+    });
+  }
+
+  showSkins() {
+    this.renderSkinsList();
+    this.skinsModal.classList.remove('hidden');
+  }
+
+  renderSkinsList() {
+    if (!this.skinsList) return;
+    
+    const unlockedSkins = state.unlockedSkins || ['classic'];
+    
+    this.skinsList.innerHTML = CONFIG.SKINS.map(skin => {
+      const isUnlocked = unlockedSkins.includes(skin.id);
+      const isSelected = state.selectedSkin === skin.id;
+      
+      return `
+        <div class="skin-card ${isUnlocked ? '' : 'locked'} ${isSelected ? 'selected' : ''}" 
+             data-skin-id="${skin.id}">
+          <div class="skin-preview" style="background: linear-gradient(135deg, ${skin.colors.head}, ${skin.colors.body})">
+            ${isUnlocked ? '🐍' : '🔒'}
+          </div>
+          <div class="skin-name">${skin.name}</div>
+          <div class="skin-desc">${skin.description}</div>
+          ${!isUnlocked ? `<div class="skin-requirement">${this.getUnlockRequirement(skin)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+    
+    // Обработчики кликов
+    this.skinsList.querySelectorAll('.skin-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const skinId = card.dataset.skinId;
+        this.selectSkin(skinId);
+      });
+    });
+  }
+
+  getUnlockRequirement(skin) {
+    if (skin.unlockAt === 'secret') return 'Секретное условие';
+    return `Открыть при ${skin.unlockAt} очков`;
+  }
+
+  selectSkin(skinId) {
+    const unlockedSkins = state.unlockedSkins || ['classic'];
+    
+    if (!unlockedSkins.includes(skinId)) {
+      // Скин заблокирован
+      return;
+    }
+    
+    state.selectedSkin = skinId;
+    localStorage.setItem('snakeSelectedSkin', skinId);
+    this.renderSkinsList();
+  }
+
+  checkSkinUnlocks(score) {
+    const unlockedSkins = state.unlockedSkins || ['classic'];
+    let changed = false;
+    
+    CONFIG.SKINS.forEach(skin => {
+      if (typeof skin.unlockAt === 'number' && 
+          score >= skin.unlockAt && 
+          !unlockedSkins.includes(skin.id)) {
+        unlockedSkins.push(skin.id);
+        changed = true;
+        this.showNotification(`🎨 Открыт скин: ${skin.name}!`);
+      }
+      
+      // Секретный скин "ЧАЕЧКА" открывается при активации чая
+      if (skin.id === 'postal' && state.hasTea && !unlockedSkins.includes(skin.id)) {
+        unlockedSkins.push(skin.id);
+        changed = true;
+        this.showNotification(`🎨 Открыт секретный скин: ${skin.name}!`);
+      }
+    });
+    
+    if (changed) {
+      state.unlockedSkins = unlockedSkins;
+      localStorage.setItem('snakeUnlockedSkins', JSON.stringify(unlockedSkins));
+    }
+  }
+
+  showNotification(text) {
+    const el = document.createElement('div');
+    el.textContent = text;
+    el.style.cssText = `
+      position: fixed; top: 20%; left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #000; padding: 15px 30px;
+      border-radius: 8px; font-weight: bold;
+      z-index: 700; animation: fadeOut 3s forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
   resizeCanvas() {
     const maxSize = Math.min(
       window.innerWidth * 0.95,
@@ -723,6 +837,9 @@ export default class Game {
     
     // Добавляем в таблицу лидеров
     this.addToLeaderboard(state.score);
+    
+    // Проверяем разблокировку скинов
+    this.checkSkinUnlocks(state.score);
     
     // Обновляем рекорд в меню
     this.updateMenuHighScore();

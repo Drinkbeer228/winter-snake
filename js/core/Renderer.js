@@ -33,6 +33,11 @@ export default class Renderer {
   drawSnake(segments, direction) {
     if (!segments || segments.length === 0) return;
   
+    // Получаем цвета текущего скина
+    const skin = CONFIG.SKINS.find(s => s.id === state.selectedSkin) || CONFIG.SKINS[0];
+    const headColor = skin.colors.head;
+    const bodyColor = skin.colors.body;
+  
     // Свечение змейки в режиме чая
     if (state.hasTea) {
       this.ctx.shadowColor = '#FF6B6B';
@@ -50,7 +55,7 @@ export default class Renderer {
         if (state.eatTimer <= 0) state.isEating = false;
       }
       
-      this.ctx.fillStyle = isHead ? COLORS.SNAKE_HEAD : COLORS.SNAKE_BODY;
+      this.ctx.fillStyle = isHead ? headColor : bodyColor;
       this.ctx.fillRect(segment.x, segment.y, size, size);
       
       if (isHead) {
