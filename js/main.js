@@ -18,10 +18,9 @@ function initGame() {
   // Инициализация управления
   initInput((direction) => game.snake.setDirection(direction));
   
-  // Инициализация еды
-  game.spawnFood();
-  
-  game.start();
+  // Игра начинается через меню, не нужно вызывать start()
+  // game.spawnFood();
+  // game.start();
 }
 
 document.addEventListener('DOMContentLoaded', initGame);
