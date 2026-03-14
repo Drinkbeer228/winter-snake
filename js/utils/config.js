@@ -18,15 +18,6 @@ export const CONFIG = {
     poop: '#8D6E63'
   },
   
-  SKINS: [
-    { id: 'classic', name: 'Классика', color: '#4CAF50', unlockAt: 0 },
-    { id: 'fire', name: 'Огонь', color: '#FF5722', unlockAt: 25 },
-    { id: 'ice', name: 'Лёд', color: '#00BCD4', unlockAt: 50 },
-    { id: 'gold', name: 'Золото', color: '#FFD700', unlockAt: 100 },
-    { id: 'shadow', name: 'Тень', color: '#9C27B0', unlockAt: 150 },
-    { id: 'postal', name: 'ЧАЕЧКА', color: '#8B4513', unlockAt: 200 }
-  ],
-  
   ACHIEVEMENTS: [
     { id: 'first_food', name: 'Первая еда', threshold: 1, description: 'Съешь первую еду' },
     { id: 'score_10', name: '10 очков', threshold: 10, description: 'Набери 10 очков' },

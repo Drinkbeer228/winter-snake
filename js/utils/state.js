@@ -17,10 +17,8 @@ export const state = {
   obstacleInterval: 10,
   poopInterval: 10,
   muted: false,
-  selectedSkin: localStorage.getItem('selectedSkin') || 'classic',
-  unlockedSkins: JSON.parse(localStorage.getItem('unlockedSkins') || '["classic"]'),
-  achievements: JSON.parse(localStorage.getItem('snakeAchievements') || '[]'),
-  leaderboard: JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]'),
+  achievements: [],
+  leaderboard: [],
   dailyChallenges: {
     date: localStorage.getItem('snakeDailyDate') || new Date().toDateString(),
     challenges: JSON.parse(localStorage.getItem('snakeDailyChallenges') || '[]'),

@@ -41,12 +41,6 @@ export default class Game {
     this.clearLeaderboardBtn = document.getElementById('clearLeaderboardBtn');
     this.closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
     
-    // Skins
-    this.skinsBtn = document.getElementById('skinsBtn');
-    this.skinsModal = document.getElementById('skinsModal');
-    this.skinsList = document.getElementById('skinsList');
-    this.closeSkinsBtn = document.getElementById('closeSkinsBtn');
-    
     // Daily challenges
     this.dailyBtn = document.getElementById('dailyBtn');
     this.dailyModal = document.getElementById('dailyModal');
@@ -78,7 +72,6 @@ export default class Game {
     // Setup handlers
     this.setupMenuHandlers();
     this.setupLeaderboardHandlers();
-    this.setupSkinsHandlers();
     this.setupDailyHandlers();
     this.setupStatsHandlers();
     
@@ -280,6 +273,27 @@ export default class Game {
         this.snake.checkWallCollision(this.canvas.width, this.canvas.height)) {
       this.gameOver();
     }
+    
+    // Добавляем обработчик для F5 в модальных окнах
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+        // Закрываем все модальные окна при F5
+        this.hideDaily();
+        this.hideStats();
+        this.hideLeaderboard();
+        
+        // Предотвращаем стандартное поведение F5
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      // ESC закрывает модальные окна
+      if (e.key === 'Escape') {
+        this.hideDaily();
+        this.hideStats();
+        this.hideLeaderboard();
+      }
+    });
   }
 
   render() {
@@ -474,76 +488,6 @@ export default class Game {
     } else {
       this.leaderboardList.innerHTML = '<p>Пока нет рекордов</p>';
     }
-  }
-
-  setupSkinsHandlers() {
-    this.skinsBtn.addEventListener('click', () => {
-      this.showSkins();
-    });
-    
-    this.closeSkinsBtn.addEventListener('click', () => {
-      this.hideSkins();
-    });
-    
-    // Добавляем обработчик для F5 в модальных окнах
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-        // Закрываем все модальные окна при F5
-        this.hideSkins();
-        this.hideDaily();
-        this.hideStats();
-        this.hideLeaderboard();
-        
-        // Предотвращаем стандартное поведение F5
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      
-      // ESC закрывает модальные окна
-      if (e.key === 'Escape') {
-        this.hideSkins();
-        this.hideDaily();
-        this.hideStats();
-        this.hideLeaderboard();
-      }
-    });
-  }
-
-  showSkins() {
-    this.skinsModal.classList.remove('hidden');
-    this.renderSkinsList();
-  }
-
-  hideSkins() {
-    this.skinsModal.classList.add('hidden');
-  }
-
-  renderSkinsList() {
-    this.skinsList.innerHTML = '';
-    
-    CONFIG.SKINS.forEach(skin => {
-      const div = document.createElement('div');
-      div.className = 'skin-card';
-      div.innerHTML = `
-        <div class="skin-preview" style="background-color: ${skin.color}"></div>
-        <div class="skin-info">
-          <h3>${skin.name}</h3>
-          <p>Разблокируется: ${skin.unlockAt} очков</p>
-        </div>
-      `;
-      
-      div.addEventListener('click', () => {
-        this.selectSkin(skin.id);
-      });
-      
-      this.skinsList.appendChild(div);
-    });
-  }
-
-  selectSkin(skinId) {
-    state.selectedSkin = skinId;
-    localStorage.setItem('selectedSkin', skinId);
-    this.showNotification(`Скин изменён на: ${skinId}`);
   }
 
   setupDailyHandlers() {
