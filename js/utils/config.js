@@ -8,6 +8,16 @@ export const CONFIG = {
   volume: 0.5,
   debug: true,
   
+  COLORS: {
+    food: '#4CAF50',
+    snake: '#2196F3',
+    obstacle: '#757575',
+    broom: '#8B4513',
+    hammer: '#FF9800',
+    tea: '#795548',
+    poop: '#8D6E63'
+  },
+  
   SKINS: [
     { id: 'classic', name: 'Классика', color: '#4CAF50', unlockAt: 0 },
     { id: 'fire', name: 'Огонь', color: '#FF5722', unlockAt: 25 },
