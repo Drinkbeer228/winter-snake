@@ -1,11 +1,6 @@
 import { CONFIG } from '../utils/config.js';
 import { state } from '../utils/state.js';
 import Snake from './Snake.js';
-import Renderer from './Renderer.js';
-import { initInput } from './Input.js';
-import { spawnParticles, updateAndDrawParticles } from '../utils/Particles.js';
-import { playSound } from '../utils/audio.js';
-import { COLORS } from '../utils/config.js';
 
 export default class Game {
   constructor(canvas) {
@@ -72,6 +67,14 @@ export default class Game {
     this.updateMenuHighScore();
     this.resizeCanvas();
     
+    // Initialize snake and renderer
+    this.snake = new Snake();
+    this.lastUpdate = 0;
+    this.frameCount = 0;
+    this.poopTimer = 0;
+    this.broomTimer = 0;
+    this.hammerTimer = 0;
+    
     // Setup handlers
     this.setupMenuHandlers();
     this.setupLeaderboardHandlers();
@@ -79,341 +82,7 @@ export default class Game {
     this.setupDailyHandlers();
     this.setupStatsHandlers();
     
-    // Update displays
-    this.updateLeaderboardDisplay();
-    this.renderSkinsList();
-    
-    // Daily challenges init
-    this.checkDailyReset();
-    this.renderDailyChallenges();
-    this.startDailyTimer();
-    
-    // Statistics init
-    this.initStats();
-    this.renderStats();
-    
-    // Initialize snake and renderer
-    this.snake = new Snake();
-    this.renderer = new Renderer(this.ctx);
-    this.lastUpdate = 0;
-    this.frameCount = 0;
-    this.poopTimer = 0;
-    this.broomTimer = 0;
-    this.hammerTimer = 0;
-    
-    // Event handlers
-    this.restartBtn.addEventListener('click', () => {
-      this.reset();
-    });
-    
-    this.muteBtn.addEventListener('click', () => {
-      this.toggleMute();
-    });
-    
-    document.addEventListener('keydown', (e) => {
-      if ((e.code === 'Space' || e.code === 'Escape') && state.isRunning) {
-        e.preventDefault();
-        this.togglePause();
-      }
-      
-      if (e.code === 'KeyR' && !state.isRunning && !this.gameOverScreen.classList.contains('hidden')) {
-        this.reset();
-      }
-    });
-    
-    window.addEventListener('resize', () => this.resizeCanvas());
-    
     state.isRunning = false;
-  }
-
-  start() {
-    state.isRunning = true;
-    this.gameLoop();
-  }
-
-  gameLoop() {
-    if (!state.isRunning) return;
-    
-    if (state.isPaused) {
-      requestAnimationFrame(() => this.gameLoop());
-      return;
-    }
-    
-    if (state.hasTea) {
-      state.teaTimer--;
-      if (state.teaTimer <= 0) {
-        state.hasTea = false;
-        state.gameSpeed = CONFIG.INITIAL_SPEED;
-        this.updateSpeedDisplay();
-      }
-    }
-    
-    const now = Date.now();
-    if (now - this.lastUpdate >= state.gameSpeed) {
-      this.update();
-      this.render();
-      this.lastUpdate = now;
-    }
-    
-    requestAnimationFrame(() => this.gameLoop());
-  }
-
-  update() {
-    this.snake.move();
-    this.frameCount++;
-    this.poopTimer++;
-    this.broomTimer++;
-    this.hammerTimer++;
-    
-    if (this.poopTimer >= state.poopInterval && state.score >= 3) {
-      this.addPoop();
-      this.poopTimer = 0;
-    }
-    
-    if (this.broomTimer >= 200 && state.poop.length > 0 && !state.broom) {
-      this.spawnBroom();
-      this.broomTimer = 0;
-    }
-    
-    if (this.hammerTimer >= 300 && state.obstacles.length > 0 && !state.hammer) {
-      this.spawnHammer();
-      this.hammerTimer = 0;
-    }
-    
-    if (state.broom) {
-      const head = this.snake.segments[0];
-      if (head.x === state.broom.x && head.y === state.broom.y) {
-        this.collectBroom();
-      }
-    }
-    
-    if (state.hammer) {
-      const head = this.snake.segments[0];
-      if (head.x === state.hammer.x && head.y === state.hammer.y) {
-        this.collectHammer();
-      }
-    }
-    
-    if (state.score > 0 && state.score % state.obstacleInterval === 0) {
-      const lastObstacleScore = state.obstacles.length * state.obstacleInterval;
-      if (state.score === lastObstacleScore + state.obstacleInterval) {
-        this.spawnObstacle();
-      }
-    }
-    
-    if (this.checkObstacleCollision()) {
-      this.gameOver();
-    }
-    
-    if (state.score >= 5 && state.food) {
-      if (this.frameCount % 30 === 0) {
-        this.moveFood();
-      }
-    }
-    
-    if (state.food) {
-      const head = this.snake.segments[0];
-      if (head.x === state.food.x && head.y === state.food.y) {
-        this.snake.grow();
-        state.score++;
-        this.updateScoreDisplay();
-        this.checkSpeedIncrease();
-        this.checkAchievements();
-        
-        if (state.score === 50 && !state.hasTea) {
-          this.activateTea();
-        }
-        
-        state.isEating = true;
-        state.eatTimer = 5;
-        
-        playSound('eat');
-        spawnParticles(this.ctx, state.food.x, state.food.y, COLORS.food);
-        
-        this.spawnFood();
-        this.updateStats('food', 1);
-      }
-    }
-    
-    if (this.snake.checkSelfCollision() || 
-        this.snake.checkWallCollision(this.canvas.width, this.canvas.height)) {
-      this.gameOver();
-    }
-  }
-
-  render() {
-    this.renderer.clear();
-    this.renderer.drawGrid();
-    this.renderer.drawPoop(state.poop);
-    
-    if (state.broom) {
-      this.renderer.drawBroom(state.broom);
-    }
-    
-    if (state.hammer) {
-      this.renderer.drawHammer(state.hammer);
-    }
-    
-    this.renderer.drawObstacles(state.obstacles);
-    this.renderer.drawFood(state.food);
-    this.renderer.drawSnake(this.snake.segments, state.selectedSkin);
-    
-    if (state.hasTea) {
-      this.renderer.drawTeaTimer(state.teaTimer);
-    }
-    
-    updateAndDrawParticles(this.ctx);
-  }
-
-  spawnFood() {
-    const gridSize = CONFIG.GRID;
-    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
-    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
-    
-    let newFood;
-    do {
-      newFood = {
-        x: Math.floor(Math.random() * maxX) * gridSize,
-        y: Math.floor(Math.random() * maxY) * gridSize
-      };
-    } while (this.isPositionOccupied(newFood));
-    
-    state.food = newFood;
-  }
-
-  moveFood() {
-    const directions = [
-      {x: CONFIG.GRID, y: 0},
-      {x: -CONFIG.GRID, y: 0},
-      {x: 0, y: CONFIG.GRID},
-      {x: 0, y: -CONFIG.GRID}
-    ];
-    
-    const validDirections = directions.filter(dir => {
-      const newX = state.food.x + dir.x;
-      const newY = state.food.y + dir.y;
-      
-      if (newX >= 0 && newX < this.canvas.width && 
-          newY >= 0 && newY < this.canvas.height) {
-        state.food.x = newX;
-        state.food.y = newY;
-        return true;
-      }
-      return false;
-    });
-    
-    if (validDirections.length > 0) {
-      const randomDir = validDirections[Math.floor(Math.random() * validDirections.length)];
-      state.food.x += randomDir.x;
-      state.food.y += randomDir.y;
-    }
-  }
-
-  addPoop() {
-    const tail = this.snake.segments[this.snake.segments.length - 1];
-    state.poop.push({x: tail.x, y: tail.y});
-  }
-
-  spawnBroom() {
-    if (state.broom) return;
-    
-    const gridSize = CONFIG.GRID;
-    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
-    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
-    
-    state.broom = {
-      x: Math.floor(Math.random() * maxX) * gridSize,
-      y: Math.floor(Math.random() * maxY) * gridSize
-    };
-  }
-
-  collectBroom() {
-    state.broom = null;
-    state.poop = [];
-    state.score += 1;
-    this.updateStats('broom', 1);
-  }
-
-  spawnObstacle() {
-    const gridSize = CONFIG.GRID;
-    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
-    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
-    
-    const newObstacle = {
-      x: Math.floor(Math.random() * maxX) * gridSize,
-      y: Math.floor(Math.random() * maxY) * gridSize,
-      type: 'stone'
-    };
-    
-    if (!this.isPositionOccupied(newObstacle)) {
-      state.obstacles.push(newObstacle);
-    }
-  }
-
-  isPositionOccupied(pos) {
-    if (this.snake.segments.some(seg => seg.x === pos.x && seg.y === pos.y)) {
-      return true;
-    }
-    
-    if (state.food && state.food.x === pos.x && state.food.y === pos.y) {
-      return true;
-    }
-    
-    if (state.obstacles.some(obs => obs.x === pos.x && obs.y === pos.y)) {
-      return true;
-    }
-    
-    if (state.broom && state.broom.x === pos.x && state.broom.y === pos.y) {
-      return true;
-    }
-    
-    return false;
-  }
-
-  checkObstacleCollision() {
-    const head = this.snake.segments[0];
-    return state.obstacles.some(obs => obs.x === head.x && obs.y === head.y);
-  }
-
-  spawnHammer() {
-    if (state.hammer) return;
-    
-    const gridSize = CONFIG.GRID;
-    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
-    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
-    
-    state.hammer = {
-      x: Math.floor(Math.random() * maxX) * gridSize,
-      y: Math.floor(Math.random() * maxY) * gridSize
-    };
-  }
-
-  collectHammer() {
-    state.hammer = null;
-    state.hasHammer = true;
-    this.updateStats('hammer', 1);
-    
-    setTimeout(() => { state.hasHammer = false; }, 5000);
-  }
-
-  activateTea() {
-    state.hasTea = true;
-    state.teaTimer = 300;
-    state.gameSpeed = CONFIG.INITIAL_SPEED * 0.7;
-    this.updateSpeedDisplay();
-  }
-
-  checkAchievements() {
-    state.achievements.forEach(ach => {
-      if (ach.unlocked) return;
-      
-      if (state.score >= ach.threshold) {
-        ach.unlocked = true;
-        ach.unlockedAt = new Date().toISOString();
-        this.showNotification(`🏆 Достижение: ${ach.name}`);
-        this.updateStats('achievement', 1);
-      }
-    });
   }
 
   setupMenuHandlers() {
@@ -442,8 +111,6 @@ export default class Game {
     document.getElementById('gameCanvas').classList.remove('hidden');
     
     this.reset();
-    this.loadAchievements();
-    this.loadMuteState();
     this.updateScoreDisplay();
     this.updateSpeedDisplay();
   }
@@ -540,8 +207,6 @@ export default class Game {
     this.gameStartTime = Date.now();
     this.lastStatsUpdate = Date.now();
     
-    this.updateStats('game_start');
-    
     const gameOverScreen = document.getElementById('gameOverScreen');
     if (gameOverScreen) {
       gameOverScreen.classList.add('hidden');
@@ -563,6 +228,114 @@ export default class Game {
     
     this.canvas.style.width = `${size}px`;
     this.canvas.style.height = `${size}px`;
+  }
+
+  start() {
+    state.isRunning = true;
+    this.gameLoop();
+  }
+
+  gameLoop() {
+    if (!state.isRunning) return;
+    
+    if (state.isPaused) {
+      requestAnimationFrame(() => this.gameLoop());
+      return;
+    }
+    
+    const now = Date.now();
+    if (now - this.lastUpdate >= state.gameSpeed) {
+      this.update();
+      this.render();
+      this.lastUpdate = now;
+    }
+    
+    requestAnimationFrame(() => this.gameLoop());
+  }
+
+  update() {
+    this.snake.move();
+    this.frameCount++;
+    
+    if (state.food) {
+      const head = this.snake.segments[0];
+      if (head.x === state.food.x && head.y === state.food.y) {
+        this.snake.grow();
+        state.score++;
+        this.updateScoreDisplay();
+        this.checkSpeedIncrease();
+        this.checkAchievements();
+        
+        state.isEating = true;
+        state.eatTimer = 5;
+        
+        this.spawnFood();
+      }
+    }
+    
+    if (this.snake.checkSelfCollision() || 
+        this.snake.checkWallCollision(this.canvas.width, this.canvas.height)) {
+      this.gameOver();
+    }
+  }
+
+  render() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Draw grid
+    this.ctx.strokeStyle = '#e0e0e0';
+    this.ctx.lineWidth = 0.5;
+    for (let i = 0; i <= CONFIG.CANVAS_SIZE; i += CONFIG.GRID) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(i, 0);
+      this.ctx.lineTo(i, CONFIG.CANVAS_SIZE);
+      this.ctx.stroke();
+      
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, i);
+      this.ctx.lineTo(CONFIG.CANVAS_SIZE, i);
+      this.ctx.stroke();
+    }
+    
+    // Draw food
+    if (state.food) {
+      this.ctx.fillStyle = '#4CAF50';
+      this.ctx.fillRect(state.food.x, state.food.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
+    }
+    
+    // Draw snake
+    this.ctx.fillStyle = '#2196F3';
+    this.snake.segments.forEach((segment, index) => {
+      this.ctx.fillRect(segment.x, segment.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
+    });
+  }
+
+  spawnFood() {
+    const gridSize = CONFIG.GRID;
+    const maxX = Math.floor(this.canvas.width / gridSize) - 1;
+    const maxY = Math.floor(this.canvas.height / gridSize) - 1;
+    
+    let newFood;
+    do {
+      newFood = {
+        x: Math.floor(Math.random() * maxX) * gridSize,
+        y: Math.floor(Math.random() * maxY) * gridSize
+      };
+    } while (this.isPositionOccupied(newFood));
+    
+    state.food = newFood;
+  }
+
+  isPositionOccupied(pos) {
+    if (this.snake.segments.some(seg => seg.x === pos.x && seg.y === pos.y)) {
+      return true;
+    }
+    
+    if (state.food && state.food.x === pos.x && state.food.y === pos.y) {
+      return true;
+    }
+    
+    return false;
   }
 
   checkSpeedIncrease() {
@@ -595,26 +368,31 @@ export default class Game {
     setTimeout(() => el.remove(), 1500);
   }
 
-  togglePause() {
-    if (!this.gameOverScreen.classList.contains('hidden')) {
-      return;
-    }
-    
-    state.isPaused = !state.isPaused;
-    
-    if (state.isPaused) {
-      this.showPauseOverlay();
-    } else {
-      this.hidePauseOverlay();
+  checkAchievements() {
+    if (state.achievements) {
+      state.achievements.forEach(ach => {
+        if (ach.unlocked) return;
+        
+        if (state.score >= ach.threshold) {
+          ach.unlocked = true;
+          ach.unlockedAt = new Date().toISOString();
+          this.showNotification(`🏆 Достижение: ${ach.name}`);
+        }
+      });
     }
   }
 
-  showPauseOverlay() {
-    this.pauseOverlay.classList.remove('hidden');
-  }
-
-  hidePauseOverlay() {
-    this.pauseOverlay.classList.add('hidden');
+  showNotification(message) {
+    const el = document.createElement('div');
+    el.textContent = message;
+    el.style.cssText = `
+      position: fixed; top: 20px; right: 20px;
+      background: rgba(0,0,0,0.8); color: white;
+      padding: 10px 15px; border-radius: 5px;
+      z-index: 1000;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
   }
 
   gameOver() {
@@ -624,11 +402,6 @@ export default class Game {
       state.highScore = state.score;
       localStorage.setItem('snakeHighScore', state.highScore);
     }
-    
-    this.addToLeaderboard(state.score);
-    this.checkSkinUnlocks(state.score);
-    this.updateStats('score', state.score);
-    this.updateMenuHighScore();
     
     this.finalScoreEl.textContent = state.score;
     this.finalHighScoreEl.textContent = state.highScore;
@@ -650,87 +423,221 @@ export default class Game {
     this.updateMenuHighScore();
   }
 
-  showNotification(message) {
-    const el = document.createElement('div');
-    el.textContent = message;
-    el.style.cssText = `
-      position: fixed; top: 20px; right: 20px;
-      background: rgba(0,0,0,0.8); color: white;
-      padding: 10px 15px; border-radius: 5px;
-      z-index: 1000;
-    `;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
+  updateMenuHighScore() {
+    this.menuHighScore.textContent = state.highScore;
   }
 
-  addToLeaderboard(score) {
-    const entry = {
-      score: score,
-      date: new Date().toISOString(),
-      id: Date.now()
-    };
+  setupLeaderboardHandlers() {
+    this.leaderboardBtn.addEventListener('click', () => {
+      this.showLeaderboard();
+    });
     
-    state.leaderboard.push(entry);
-    state.leaderboard.sort((a, b) => b.score - a.score);
-    state.leaderboard = state.leaderboard.slice(0, 10);
+    this.closeLeaderboardBtn.addEventListener('click', () => {
+      this.hideLeaderboard();
+    });
     
-    localStorage.setItem('snakeLeaderboard', JSON.stringify(state.leaderboard));
-  }
-
-  checkSkinUnlocks(score) {
-    const unlockedSkins = state.unlockedSkins || ['classic'];
-    
-    CONFIG.SKINS.forEach(skin => {
-      if (score >= skin.unlockAt && !unlockedSkins.includes(skin.id)) {
-        unlockedSkins.push(skin.id);
-        state.unlockedSkins = unlockedSkins;
-        localStorage.setItem('unlockedSkins', JSON.stringify(unlockedSkins));
-        this.showNotification(`🎨 Открыт скин: ${skin.name}!`);
+    this.clearLeaderboardBtn.addEventListener('click', () => {
+      if (confirm('Очистить таблицу лидеров?')) {
+        state.leaderboard = [];
+        localStorage.setItem('snakeLeaderboard', JSON.stringify(state.leaderboard));
+        this.updateLeaderboardDisplay();
       }
     });
   }
 
-  updateStats(type, value) {
+  showLeaderboard() {
+    this.leaderboardModal.classList.remove('hidden');
+    this.updateLeaderboardDisplay();
+  }
+
+  hideLeaderboard() {
+    this.leaderboardModal.classList.add('hidden');
+  }
+
+  updateLeaderboardDisplay() {
+    this.leaderboardList.innerHTML = '';
+    
+    if (state.leaderboard && state.leaderboard.length > 0) {
+      state.leaderboard.forEach((entry, index) => {
+        const div = document.createElement('div');
+        div.className = 'leaderboard-entry';
+        div.innerHTML = `
+          <span class="rank">#${index + 1}</span>
+          <span class="score">${entry.score}</span>
+          <span class="date">${new Date(entry.date).toLocaleDateString()}</span>
+        `;
+        this.leaderboardList.appendChild(div);
+      });
+    } else {
+      this.leaderboardList.innerHTML = '<p>Пока нет рекордов</p>';
+    }
+  }
+
+  setupSkinsHandlers() {
+    this.skinsBtn.addEventListener('click', () => {
+      this.showSkins();
+    });
+    
+    this.closeSkinsBtn.addEventListener('click', () => {
+      this.hideSkins();
+    });
+  }
+
+  showSkins() {
+    this.skinsModal.classList.remove('hidden');
+    this.renderSkinsList();
+  }
+
+  hideSkins() {
+    this.skinsModal.classList.add('hidden');
+  }
+
+  renderSkinsList() {
+    this.skinsList.innerHTML = '';
+    
+    CONFIG.SKINS.forEach(skin => {
+      const div = document.createElement('div');
+      div.className = 'skin-card';
+      div.innerHTML = `
+        <div class="skin-preview" style="background-color: ${skin.color}"></div>
+        <div class="skin-info">
+          <h3>${skin.name}</h3>
+          <p>Разблокируется: ${skin.unlockAt} очков</p>
+        </div>
+      `;
+      
+      div.addEventListener('click', () => {
+        this.selectSkin(skin.id);
+      });
+      
+      this.skinsList.appendChild(div);
+    });
+  }
+
+  selectSkin(skinId) {
+    state.selectedSkin = skinId;
+    localStorage.setItem('selectedSkin', skinId);
+    this.showNotification(`Скин изменён на: ${skinId}`);
+  }
+
+  setupDailyHandlers() {
+    this.dailyBtn.addEventListener('click', () => {
+      this.showDaily();
+    });
+    
+    this.closeDailyBtn.addEventListener('click', () => {
+      this.hideDaily();
+    });
+  }
+
+  showDaily() {
+    this.dailyModal.classList.remove('hidden');
+    this.renderDailyChallenges();
+  }
+
+  hideDaily() {
+    this.dailyModal.classList.add('hidden');
+  }
+
+  renderDailyChallenges() {
+    this.dailyList.innerHTML = '';
+    
+    if (state.dailyChallenges && state.dailyChallenges.challenges) {
+      state.dailyChallenges.challenges.forEach(challenge => {
+        const div = document.createElement('div');
+        div.className = 'daily-challenge';
+        div.innerHTML = `
+          <h4>${challenge.name}</h4>
+          <p>Прогресс: ${challenge.progress || 0}/${challenge.target}</p>
+        `;
+        this.dailyList.appendChild(div);
+      });
+    }
+  }
+
+  checkDailyReset() {
+    const today = new Date().toDateString();
+    if (state.dailyChallenges.date !== today) {
+      this.generateDailyChallenges();
+      state.dailyChallenges.date = today;
+    }
+  }
+
+  generateDailyChallenges() {
+    const shuffled = [...CONFIG.DAILY_CHALLENGES].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+    
+    state.dailyChallenges.challenges = selected.map(challenge => ({
+      ...challenge,
+      progress: 0
+    }));
+  }
+
+  startDailyTimer() {
+    // Timer logic would go here
+  }
+
+  setupStatsHandlers() {
+    this.statsBtn.addEventListener('click', () => {
+      this.showStats();
+    });
+    
+    this.closeStatsBtn.addEventListener('click', () => {
+      this.hideStats();
+    });
+    
+    this.resetStatsBtn.addEventListener('click', () => {
+      if (confirm('Сбросить всю статистику?')) {
+        state.stats = {
+          gamesPlayed: 0,
+          totalScore: 0,
+          bestScore: 0,
+          totalTimePlayed: 0,
+          totalFoodEaten: 0,
+          totalBroomsCollected: 0,
+          totalPoopLeft: 0,
+          totalObstaclesHit: 0,
+          totalHammerCollected: 0,
+          achievementsUnlocked: 0,
+          skinsUnlocked: 1,
+          lastPlayed: null
+        };
+        localStorage.setItem('snakeStats', JSON.stringify(state.stats));
+        this.renderStats();
+        this.showNotification('📊 Статистика сброшена');
+      }
+    });
+  }
+
+  showStats() {
+    this.statsModal.classList.remove('hidden');
+    this.renderStats();
+  }
+
+  hideStats() {
+    this.statsModal.classList.add('hidden');
+  }
+
+  renderStats() {
+    this.statsContent.innerHTML = '';
+    
     const stats = state.stats || {};
     
-    switch(type) {
-      case 'game_start':
-        stats.gamesPlayed = (stats.gamesPlayed || 0) + 1;
-        stats.lastPlayed = new Date().toISOString();
-        break;
-      case 'score':
-        stats.totalScore = (stats.totalScore || 0) + value;
-        if (value > (stats.bestScore || 0)) {
-          stats.bestScore = value;
-        }
-        break;
-      case 'time':
-        stats.totalTimePlayed = (stats.totalTimePlayed || 0) + value;
-        break;
-      case 'food':
-        stats.totalFoodEaten = (stats.totalFoodEaten || 0) + value;
-        break;
-      case 'broom':
-        stats.totalBroomsCollected = (stats.totalBroomsCollected || 0) + value;
-        break;
-      case 'poop':
-        stats.totalPoopLeft = (stats.totalPoopLeft || 0) + value;
-        break;
-      case 'obstacle':
-        stats.totalObstaclesHit = (stats.totalObstaclesHit || 0) + value;
-        break;
-      case 'hammer':
-        stats.totalHammerCollected = (stats.totalHammerCollected || 0) + value;
-        break;
-      case 'achievement':
-        stats.achievementsUnlocked = (stats.achievementsUnlocked || 0) + value;
-        break;
-      case 'skin':
-        stats.skinsUnlocked = (stats.skinsUnlocked || 0) + value;
-        break;
-    }
+    const html = `
+      <div class="stat-card">
+        <h3>🎮 Игр сыграно</h3>
+        <p>${stats.gamesPlayed || 0}</p>
+      </div>
+      <div class="stat-card">
+        <h3>🏆 Лучший счёт</h3>
+        <p>${stats.bestScore || 0}</p>
+      </div>
+      <div class="stat-card">
+        <h3>⏱️ Время игры</h3>
+        <p>${Math.floor((stats.totalTimePlayed || 0) / 60)} минут</p>
+      </div>
+    `;
     
-    state.stats = stats;
-    localStorage.setItem('snakeStats', JSON.stringify(stats));
+    this.statsContent.innerHTML = html;
   }
 }
