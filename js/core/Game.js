@@ -1210,18 +1210,19 @@ export default class Game {
     // CSS масштабирует отображение
   }
 
-checkSpeedIncrease() {
-  if (state.score > 0 && state.score % 5 === 0) {
-    const oldSpeed = state.gameSpeed;
-    state.gameSpeed = Math.max(
-      CONFIG.MIN_SPEED,
-      state.gameSpeed * CONFIG.SPEED_MULTIPLIER
-    );
-    
-    // Показываем уведомление только если скорость реально изменилась
-    if (oldSpeed !== state.gameSpeed) {
-      this.showSpeedNotification();
-      this.updateSpeedDisplay();
+  checkSpeedIncrease() {
+    if (state.score > 0 && state.score % 5 === 0) {
+      const oldSpeed = state.gameSpeed;
+      state.gameSpeed = Math.max(
+        CONFIG.MIN_SPEED,
+        state.gameSpeed * CONFIG.SPEED_MULTIPLIER
+      );
+      
+      // Показываем уведомление только если скорость реально изменилась
+      if (oldSpeed !== state.gameSpeed) {
+        this.showSpeedNotification();
+        this.updateSpeedDisplay();
+      }
     }
   }
 }
@@ -1254,6 +1255,7 @@ togglePause() {
   } else {
     this.hidePauseOverlay();
   }
+}
 
   gameOver() {
     state.isRunning = false;
