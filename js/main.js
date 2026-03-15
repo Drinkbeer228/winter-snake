@@ -9,25 +9,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const startScreen = document.getElementById('startScreen');
   const gameOverScreen = document.getElementById('gameOverScreen');
   
-  const game = new Game(canvas);
+  console.log('🐍 Loading game...');
   
-  const input = new Input(
-    (dir) => game.setDirection(dir),
-    (dir) => game.setBoost(dir)
-  );
-  
-  startBtn.addEventListener('click', () => {
-    startScreen.classList.add('hidden');
-    game.start();
-  });
-  
-  restartBtn.addEventListener('click', () => {
-    gameOverScreen.classList.add('hidden');
-    game.start();
-  });
-  
-  if (CONFIG.debug) {
-    window.game = game;
-    console.log('🐍 Winter Snake loaded!');
+  try {
+    const game = new Game(canvas);
+    
+    const input = new Input(
+      (dir) => game.setDirection(dir),
+      (dir) => game.setBoost(dir)
+    );
+    
+    startBtn.addEventListener('click', () => {
+      console.log('🚀 Starting game...');
+      startScreen.classList.add('hidden');
+      game.start();
+    });
+    
+    restartBtn.addEventListener('click', () => {
+      console.log('🔄 Restarting game...');
+      gameOverScreen.classList.add('hidden');
+      game.start();
+    });
+    
+    if (CONFIG.debug) {
+      window.game = game;
+      console.log('🐍 Winter Snake loaded successfully!');
+    }
+  } catch (error) {
+    console.error('❌ Game loading failed:', error);
+    alert('Game loading failed. Check console for details.');
   }
 });
