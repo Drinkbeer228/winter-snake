@@ -39,7 +39,7 @@ export default class Renderer {
     }
   }
 
-  // Змейка с emoji головой и цветным телом
+  // Змейка со спрайтом для всех сегментов
   drawSnake(segments, direction) {
     if (!segments?.length) return;
 
@@ -47,21 +47,48 @@ export default class Renderer {
       const isHead = index === 0;
       const size = CONFIG.GRID;
 
-      if (isHead) {
-        // Голова - emoji 🐍
-        this.ctx.font = `${CONFIG.GRID}px Arial`;
-        this.ctx.fillStyle = '#fff';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(
-          '🐍',
-          segment.x + CONFIG.GRID / 2,
-          segment.y + CONFIG.GRID / 2
-        );
+      // Если спрайт загрузился - рисуем его для всех сегментов
+      if (this.sprites.snakeHead && this.sprites.snakeHead.complete && this.sprites.snakeHead.naturalWidth !== 0) {
+        this.ctx.save();
+        
+        // Поворот только для головы
+        if (isHead) {
+          this.ctx.translate(segment.x + size / 2, segment.y + size / 2);
+          
+          if (direction.x === 1) this.ctx.rotate(0);
+          else if (direction.x === -1) this.ctx.rotate(Math.PI);
+          else if (direction.y === -1) this.ctx.rotate(-Math.PI / 2);
+          else if (direction.y === 1) this.ctx.rotate(Math.PI / 2);
+          
+          this.ctx.drawImage(this.sprites.snakeHead, -size / 2, -size / 2, size, size);
+        } else {
+          // Тело - тот же спрайт без поворота
+          this.ctx.drawImage(this.sprites.snakeHead, segment.x, segment.y, size, size);
+        }
+        
+        this.ctx.restore();
       } else {
-        // Тело - цветные квадраты
-        this.ctx.fillStyle = '#3db6dc';
+        // Фоллбэк - цветные сегменты
+        this.ctx.fillStyle = isHead ? '#7de3ff' : '#3db6dc';
         this.ctx.fillRect(segment.x + 1, segment.y + 1, size - 2, size - 2);
+        
+        // Глаза для головы
+        if (isHead) {
+          this.ctx.fillStyle = '#fff';
+          if (direction.x === 1) { // вправо
+            this.ctx.fillRect(segment.x + 8, segment.y + 5, 3, 3);
+            this.ctx.fillRect(segment.x + 8, segment.y + 12, 3, 3);
+          } else if (direction.x === -1) { // влево
+            this.ctx.fillRect(segment.x + 5, segment.y + 5, 3, 3);
+            this.ctx.fillRect(segment.x + 5, segment.y + 12, 3, 3);
+          } else if (direction.y === -1) { // вверх
+            this.ctx.fillRect(segment.x + 5, segment.y + 5, 3, 3);
+            this.ctx.fillRect(segment.x + 12, segment.y + 5, 3, 3);
+          } else { // вниз
+            this.ctx.fillRect(segment.x + 5, segment.y + 8, 3, 3);
+            this.ctx.fillRect(segment.x + 12, segment.y + 8, 3, 3);
+          }
+        }
       }
     });
   }
