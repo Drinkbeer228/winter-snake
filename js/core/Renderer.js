@@ -1,27 +1,36 @@
-import { CONFIG, COLORS } from '../utils/config.js';
-import { state } from '../utils/state.js';
+import { CONFIG } from '../utils/config.js';
 
 export default class Renderer {
   constructor(ctx) {
     this.ctx = ctx;
+    this.sprites = {};
+    this.loadSprites();
   }
 
+  // Загружаем спрайты
+  loadSprites() {
+    // Голова змейки
+    this.sprites.snakeHead = new Image();
+    this.sprites.snakeHead.src = 'assets/images/1.png';
+  }
+
+  // Очистка экрана
   clear() {
-    this.ctx.fillStyle = COLORS.BG_TOP;
-    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
   }
 
+  // Сетка
   drawGrid() {
     this.ctx.strokeStyle = 'rgba(255,255,255,0.1)';
     this.ctx.lineWidth = 1;
-    
+
     for (let x = 0; x < this.ctx.canvas.width; x += CONFIG.GRID) {
       this.ctx.beginPath();
       this.ctx.moveTo(x, 0);
       this.ctx.lineTo(x, this.ctx.canvas.height);
       this.ctx.stroke();
     }
-    
+
     for (let y = 0; y < this.ctx.canvas.height; y += CONFIG.GRID) {
       this.ctx.beginPath();
       this.ctx.moveTo(0, y);
@@ -30,132 +39,84 @@ export default class Renderer {
     }
   }
 
+  // Змейка со спрайтом для головы
   drawSnake(segments, direction) {
-    if (!segments || segments.length === 0) return;
-  
-    // Получаем цвета текущего скина
-    const skin = CONFIG.SKINS.find(s => s.id === state.selectedSkin) || CONFIG.SKINS[0];
-    const headColor = skin.colors.head;
-    const bodyColor = skin.colors.body;
-  
-    // Свечение змейки в режиме чая
-    if (state.hasTea) {
-      this.ctx.shadowColor = '#FF6B6B';
-      this.ctx.shadowBlur = 15;
-    }
-  
+    if (!segments?.length) return;
+
     segments.forEach((segment, index) => {
       const isHead = index === 0;
-      
-      // Пульсация при росте
-      let size = CONFIG.GRID - 2;
-      if (state.isEating && isHead) {
-        size += 4; // чуть больше
-        state.eatTimer--;
-        if (state.eatTimer <= 0) state.isEating = false;
-      }
-      
-      this.ctx.fillStyle = isHead ? headColor : bodyColor;
-      this.ctx.fillRect(segment.x, segment.y, size, size);
-      
+      const size = CONFIG.GRID;
+
       if (isHead) {
-        // Глаза
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(segment.x + 4, segment.y + 4, 3, 3);
-        this.ctx.fillRect(segment.x + 13, segment.y + 4, 3, 3);
-        
-        // "Зубы" / рот - белая точка в сторону движения
-        this.ctx.fillStyle = 'white';
-        const centerX = segment.x + CONFIG.GRID/2;
-        const centerY = segment.y + CONFIG.GRID/2;
-        
-        // Смещение рта в сторону движения
-        const mouthOffset = 4;
-        const mouthX = centerX + (direction.x > 0 ? mouthOffset : direction.x < 0 ? -mouthOffset : 0);
-        const mouthY = centerY + (direction.y > 0 ? mouthOffset : direction.y < 0 ? -mouthOffset : 0);
-        
-        this.ctx.beginPath();
-        this.ctx.arc(mouthX, mouthY, 2, 0, Math.PI * 2);
-        this.ctx.fill();
+        // Если спрайт загрузился — рисуем его
+        if (this.sprites.snakeHead && this.sprites.snakeHead.complete && this.sprites.snakeHead.naturalWidth !== 0) {
+          this.ctx.save();
+          
+          // Поворот головы по направлению
+          this.ctx.translate(segment.x + size / 2, segment.y + size / 2);
+          
+          if (direction.x === 1) this.ctx.rotate(0);
+          else if (direction.x === -1) this.ctx.rotate(Math.PI);
+          else if (direction.y === -1) this.ctx.rotate(-Math.PI / 2);
+          else if (direction.y === 1) this.ctx.rotate(Math.PI / 2);
+          
+          this.ctx.drawImage(this.sprites.snakeHead, -size / 2, -size / 2, size, size);
+          this.ctx.restore();
+        } else {
+          // Фоллбэк — цветная голова с глазами
+          this.ctx.fillStyle = '#7de3ff';
+          this.ctx.fillRect(segment.x + 1, segment.y + 1, size - 2, size - 2);
+          
+          // Глаза
+          this.ctx.fillStyle = '#fff';
+          if (direction.x === 1) { // вправо
+            this.ctx.fillRect(segment.x + 8, segment.y + 5, 3, 3);
+            this.ctx.fillRect(segment.x + 8, segment.y + 12, 3, 3);
+          } else if (direction.x === -1) { // влево
+            this.ctx.fillRect(segment.x + 5, segment.y + 5, 3, 3);
+            this.ctx.fillRect(segment.x + 5, segment.y + 12, 3, 3);
+          } else if (direction.y === -1) { // вверх
+            this.ctx.fillRect(segment.x + 5, segment.y + 5, 3, 3);
+            this.ctx.fillRect(segment.x + 12, segment.y + 5, 3, 3);
+          } else { // вниз
+            this.ctx.fillRect(segment.x + 5, segment.y + 8, 3, 3);
+            this.ctx.fillRect(segment.x + 12, segment.y + 8, 3, 3);
+          }
+        }
+      } else {
+        // Тело - цветные квадраты
+        this.ctx.fillStyle = '#3db6dc';
+        this.ctx.fillRect(segment.x + 1, segment.y + 1, size - 2, size - 2);
       }
     });
-  
-    // Сброс свечения
-    this.ctx.shadowBlur = 0;
   }
 
+  // Еда (emoji)
   drawFood(food) {
     if (!food) return;
-  
-    // Пульсация (синус от времени)
-    const pulse = Math.sin(Date.now() / 200) * 2;
-    const size = CONFIG.GRID - 2 + pulse;
-    const offset = (CONFIG.GRID - size) / 2;
-  
-    // Основная еда (круглая)
-    this.ctx.fillStyle = COLORS.FOOD;
-    this.ctx.beginPath();
-    this.ctx.arc(
-      food.x + CONFIG.GRID/2,
-      food.y + CONFIG.GRID/2,
-      size/2,
-      0, Math.PI * 2
+
+    this.ctx.font = `${CONFIG.GRID - 4}px Arial`;
+    this.ctx.fillStyle = '#fff';
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillText(
+      CONFIG.EMOJIS.food,
+      food.x + CONFIG.GRID / 2,
+      food.y + CONFIG.GRID / 2
     );
-    this.ctx.fill();
-  
-    // Свечение
-    this.ctx.shadowColor = COLORS.FOOD;
-    this.ctx.shadowBlur = 10;
-    this.ctx.fill();
-    this.ctx.shadowBlur = 0;  // Сброс для остальных объектов
   }
 
-  drawPoop(poopArray) {
-    if (!poopArray || poopArray.length === 0) return;
-    
-    poopArray.forEach(p => {
-      this.ctx.fillStyle = COLORS.POOP;
-      this.ctx.beginPath();
-      this.ctx.arc(
-        p.x + CONFIG.GRID/2, 
-        p.y + CONFIG.GRID/2, 
-        CONFIG.GRID/3, 
-        0, Math.PI * 2
-      );
-      this.ctx.fill();
-    });
-  }
-
-  drawBroom(broom) {
-    if (!broom) return;
-    this.ctx.fillStyle = COLORS.BROOM;
-    this.ctx.fillRect(broom.x, broom.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
-    
-    // Можно добавить "ручку" метлы
-    this.ctx.fillStyle = '#8B4513'; // коричневая ручка
-    this.ctx.fillRect(broom.x + CONFIG.GRID/2 - 1, broom.y - 2, 2, 4);
-  }
-
+  // Препятствия (emoji)
   drawObstacles(obstacles) {
-    if (!obstacles || obstacles.length === 0) return;
-    
-    obstacles.forEach(obs => {
-      this.ctx.fillStyle = COLORS.OBSTACLE;
-      this.ctx.fillRect(obs.x, obs.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
-      
-      // Можно добавить текстуру камня
-      this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      this.ctx.fillRect(obs.x + 2, obs.y + 2, 4, 4);
-    });
-  }
+    if (!obstacles?.length) return;
 
-  drawHammer(hammer) {
-    if (!hammer) return;
-    this.ctx.fillStyle = COLORS.HAMMER;
-    this.ctx.fillRect(hammer.x, hammer.y, CONFIG.GRID - 2, CONFIG.GRID - 2);
-    
-    // Можно добавить "ручку" молота
-    this.ctx.fillStyle = '#8B4513'; // коричневая ручка
-    this.ctx.fillRect(hammer.x + CONFIG.GRID/2 - 1, hammer.y - 2, 2, 4);
+    this.ctx.font = `${CONFIG.GRID - 4}px Arial`;
+    obstacles.forEach(obs => {
+      this.ctx.fillText(
+        CONFIG.EMOJIS.obstacle,
+        obs.x + CONFIG.GRID / 2,
+        obs.y + CONFIG.GRID / 2
+      );
+    });
   }
 }

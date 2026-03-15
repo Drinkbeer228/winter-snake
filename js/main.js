@@ -1,25 +1,33 @@
-import Game from './core/Game.js';
+import { Game } from './core/Game.js';
+import { Input } from './core/Input.js';
 import { CONFIG } from './utils/config.js';
-import { initInput } from './core/Input.js';
 
-function initGame() {
+document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
-  if (!canvas) {
-    console.error('Canvas not found');
-    return;
-  }
-
+  const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const startScreen = document.getElementById('startScreen');
+  const gameOverScreen = document.getElementById('gameOverScreen');
+  
   const game = new Game(canvas);
   
-  if (CONFIG.debug) {
-    window.__game = game;
-  }
+  const input = new Input(
+    (dir) => game.setDirection(dir),
+    (dir) => game.setBoost(dir)
+  );
   
-  initInput((direction) => {
-    if (game.snake && game.snake.setDirection) {
-      game.snake.setDirection(direction);
-    }
+  startBtn.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    game.start();
   });
-}
-
-document.addEventListener('DOMContentLoaded', initGame);
+  
+  restartBtn.addEventListener('click', () => {
+    gameOverScreen.classList.add('hidden');
+    game.start();
+  });
+  
+  if (CONFIG.debug) {
+    window.game = game;
+    console.log('🐍 Winter Snake loaded!');
+  }
+});

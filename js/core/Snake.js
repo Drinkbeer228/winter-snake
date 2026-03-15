@@ -1,27 +1,37 @@
 import { CONFIG } from '../utils/config.js';
 
-export default class Snake {
+export class Snake {
   constructor() {
+    this.reset();
+  }
+  
+  reset() {
+    const startX = Math.floor(CONFIG.CANVAS_WIDTH / CONFIG.GRID / 2) * CONFIG.GRID;
+    const startY = Math.floor(CONFIG.CANVAS_HEIGHT / CONFIG.GRID / 2) * CONFIG.GRID;
+    
     this.segments = [
-      {x: 160, y: 160},
-      {x: 140, y: 160}
+      { x: startX, y: startY },
+      { x: startX - CONFIG.GRID, y: startY },
+      { x: startX - CONFIG.GRID * 2, y: startY }
     ];
-    this.direction = {x: CONFIG.GRID, y: 0};
+    this.direction = { x: CONFIG.GRID, y: 0 };
+    this.nextDirection = { x: CONFIG.GRID, y: 0 };
     this.growing = false;
   }
-
-  setDirection(newDirection) {
-    // Запрещаем разворот на 180°
-    if (newDirection.x === -this.direction.x && newDirection.y === 0) return;
-    if (newDirection.y === -this.direction.y && newDirection.x === 0) return;
-    
-    this.direction = newDirection;
+  
+  setDirection(dir) {
+    // Запрет разворота на 180°
+    if (dir.x === -this.direction.x && dir.y === 0) return;
+    if (dir.y === -this.direction.y && dir.x === 0) return;
+    this.nextDirection = dir;
   }
-
+  
   move() {
-    const head = {...this.segments[0]};
-    head.x += this.direction.x;
-    head.y += this.direction.y;
+    this.direction = this.nextDirection;
+    const head = {
+      x: this.segments[0].x + this.direction.x,
+      y: this.segments[0].y + this.direction.y
+    };
     this.segments.unshift(head);
     
     if (!this.growing) {
@@ -30,11 +40,11 @@ export default class Snake {
       this.growing = false;
     }
   }
-
+  
   grow() {
     this.growing = true;
   }
-
+  
   checkSelfCollision() {
     const head = this.segments[0];
     for (let i = 1; i < this.segments.length; i++) {
@@ -44,19 +54,13 @@ export default class Snake {
     }
     return false;
   }
-
-  checkWallCollision(canvasWidth, canvasHeight) {
+  
+  checkWallCollision(width, height) {
     const head = this.segments[0];
-    return head.x < 0 || head.x >= canvasWidth || 
-           head.y < 0 || head.y >= canvasHeight;
+    return head.x < 0 || head.x >= width || head.y < 0 || head.y >= height;
   }
-
-  reset() {
-    this.segments = [
-      {x: 160, y: 160},
-      {x: 140, y: 160}
-    ];
-    this.direction = {x: CONFIG.GRID, y: 0};
-    this.growing = false;
+  
+  getHead() {
+    return this.segments[0];
   }
 }

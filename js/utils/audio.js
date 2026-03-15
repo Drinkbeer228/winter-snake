@@ -1,26 +1,48 @@
 import { CONFIG } from './config.js';
 
-// Инициализация Audio Context
+// Заглушки — потом заменишь на свои файлы
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-CONFIG.audioContext = audioCtx;
 
-export function playSound(type) {
-  if (!CONFIG.soundEnabled || !CONFIG.audioContext) return;
+export const audio = {
+  playEat() {
+    if (!CONFIG.debug) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 600;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+  },
   
-  const oscillator = CONFIG.audioContext.createOscillator();
-  const gainNode = CONFIG.audioContext.createGain();
+  playCrash() {
+    if (!CONFIG.debug) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 200;
+    osc.type = 'sawtooth';
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  },
   
-  oscillator.connect(gainNode);
-  gainNode.connect(CONFIG.audioContext.destination);
-  
-  switch(type) {
-    case 'eat':
-      oscillator.frequency.setValueAtTime(600, CONFIG.audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(400, CONFIG.audioContext.currentTime + 0.1);
-      gainNode.gain.setValueAtTime(CONFIG.volume * 0.1, CONFIG.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, CONFIG.audioContext.currentTime + 0.1);
-      oscillator.start(CONFIG.audioContext.currentTime);
-      oscillator.stop(CONFIG.audioContext.currentTime + 0.1);
-      break;
+  playBoost() {
+    if (!CONFIG.debug) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 400;
+    osc.type = 'square';
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.05);
   }
-}
+};

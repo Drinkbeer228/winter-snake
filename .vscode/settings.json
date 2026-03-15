@@ -1,0 +1,14 @@
+{
+  "liveServer.settings.port": 5500,
+  "liveServer.settings.root": "/",
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**/*",
+    "**/*.scss",
+    "**/*.sass"
+  ],
+  "liveServer.settings.wait": 1000,
+  "liveServer.settings.mount": [
+    ["/", "./"],
+    ["/play", "./play.html"]
+  ]
+}
