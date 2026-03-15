@@ -11,7 +11,7 @@ export default class Renderer {
   loadSprites() {
     // Голова змейки
     this.sprites.snakeHead = new Image();
-    this.sprites.snakeHead.src = 'assets/images/1.png';
+    this.sprites.snakeHead.src = './assets/images/1.png';
   }
 
   // Очистка экрана
