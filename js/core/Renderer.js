@@ -39,7 +39,7 @@ export default class Renderer {
     }
   }
 
-  // Змейка со спрайтом для головы
+  // Змейка со спрайтом для всех сегментов
   drawSnake(segments, direction) {
     if (!segments?.length) return;
 
@@ -47,12 +47,12 @@ export default class Renderer {
       const isHead = index === 0;
       const size = CONFIG.GRID;
 
-      if (isHead) {
-        // Если спрайт загрузился — рисуем его
-        if (this.sprites.snakeHead && this.sprites.snakeHead.complete && this.sprites.snakeHead.naturalWidth !== 0) {
-          this.ctx.save();
-          
-          // Поворот головы по направлению
+      // Если спрайт загрузился - рисуем его для всех сегментов
+      if (this.sprites.snakeHead && this.sprites.snakeHead.complete && this.sprites.snakeHead.naturalWidth !== 0) {
+        this.ctx.save();
+        
+        // Поворот только для головы
+        if (isHead) {
           this.ctx.translate(segment.x + size / 2, segment.y + size / 2);
           
           if (direction.x === 1) this.ctx.rotate(0);
@@ -61,13 +61,19 @@ export default class Renderer {
           else if (direction.y === 1) this.ctx.rotate(Math.PI / 2);
           
           this.ctx.drawImage(this.sprites.snakeHead, -size / 2, -size / 2, size, size);
-          this.ctx.restore();
         } else {
-          // Фоллбэк — цветная голова с глазами
-          this.ctx.fillStyle = '#7de3ff';
-          this.ctx.fillRect(segment.x + 1, segment.y + 1, size - 2, size - 2);
-          
-          // Глаза
+          // Тело - тот же спрайт без поворота
+          this.ctx.drawImage(this.sprites.snakeHead, segment.x, segment.y, size, size);
+        }
+        
+        this.ctx.restore();
+      } else {
+        // Фоллбэк - цветные сегменты
+        this.ctx.fillStyle = isHead ? '#7de3ff' : '#3db6dc';
+        this.ctx.fillRect(segment.x + 1, segment.y + 1, size - 2, size - 2);
+        
+        // Глаза для головы
+        if (isHead) {
           this.ctx.fillStyle = '#fff';
           if (direction.x === 1) { // вправо
             this.ctx.fillRect(segment.x + 8, segment.y + 5, 3, 3);
@@ -83,10 +89,6 @@ export default class Renderer {
             this.ctx.fillRect(segment.x + 12, segment.y + 8, 3, 3);
           }
         }
-      } else {
-        // Тело - цветные квадраты
-        this.ctx.fillStyle = '#3db6dc';
-        this.ctx.fillRect(segment.x + 1, segment.y + 1, size - 2, size - 2);
       }
     });
   }
