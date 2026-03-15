@@ -5,7 +5,7 @@ export const audio = {
   // Загружаем аудио файлы
   sounds: {
     eat: new Audio('./assets/sounds/eat.ogg'),
-    crash: null, // пока нет файла
+    crash: new Audio('./assets/sounds/death.ogg'), // звук смерти
     boost: null  // пока нет файла
   },
 
@@ -14,6 +14,12 @@ export const audio = {
     // Настраиваем звук еды
     this.sounds.eat.volume = 0.3;
     this.sounds.eat.preload = 'auto';
+    
+    // Настраиваем звук смерти
+    if (this.sounds.crash) {
+      this.sounds.crash.volume = 0.4;
+      this.sounds.crash.preload = 'auto';
+    }
     
     console.log('🔊 Audio system initialized');
   },
@@ -33,8 +39,20 @@ export const audio = {
   },
 
   playCrash() {
-    // Фоллбэк - пока нет файла
-    this.playFallbackCrash();
+    try {
+      if (this.sounds.crash) {
+        this.sounds.crash.currentTime = 0;
+        this.sounds.crash.play().catch(e => {
+          console.log('🔊 Death sound play failed:', e);
+          this.playFallbackCrash();
+        });
+      } else {
+        this.playFallbackCrash();
+      }
+    } catch (e) {
+      console.log('🔊 Death sound error:', e);
+      this.playFallbackCrash();
+    }
   },
 
   playBoost() {
