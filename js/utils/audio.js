@@ -1,11 +1,51 @@
 import { CONFIG } from './config.js';
 
-// Заглушки — потом заменишь на свои файлы
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
+// Аудио система с реальными файлами
 export const audio = {
+  // Загружаем аудио файлы
+  sounds: {
+    eat: new Audio('./assets/sounds/eat.ogg'),
+    crash: null, // пока нет файла
+    boost: null  // пока нет файла
+  },
+
+  // Инициализация
+  init() {
+    // Настраиваем звук еды
+    this.sounds.eat.volume = 0.3;
+    this.sounds.eat.preload = 'auto';
+    
+    console.log('🔊 Audio system initialized');
+  },
+
   playEat() {
+    try {
+      this.sounds.eat.currentTime = 0;
+      this.sounds.eat.play().catch(e => {
+        console.log('🔊 Eat sound play failed:', e);
+        // Фоллбэк на Web Audio API
+        this.playFallbackEat();
+      });
+    } catch (e) {
+      console.log('🔊 Eat sound error:', e);
+      this.playFallbackEat();
+    }
+  },
+
+  playCrash() {
+    // Фоллбэк - пока нет файла
+    this.playFallbackCrash();
+  },
+
+  playBoost() {
+    // Фоллбэк - пока нет файла
+    this.playFallbackBoost();
+  },
+
+  // Фоллбэки через Web Audio API
+  playFallbackEat() {
     if (!CONFIG.debug) return;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
@@ -17,9 +57,10 @@ export const audio = {
     osc.start();
     osc.stop(audioCtx.currentTime + 0.1);
   },
-  
-  playCrash() {
+
+  playFallbackCrash() {
     if (!CONFIG.debug) return;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
@@ -31,9 +72,10 @@ export const audio = {
     osc.start();
     osc.stop(audioCtx.currentTime + 0.3);
   },
-  
-  playBoost() {
+
+  playFallbackBoost() {
     if (!CONFIG.debug) return;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
@@ -46,3 +88,6 @@ export const audio = {
     osc.stop(audioCtx.currentTime + 0.05);
   }
 };
+
+// Инициализация при загрузке
+audio.init();
