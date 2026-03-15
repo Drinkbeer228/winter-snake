@@ -54,27 +54,7 @@ export class Input {
   }
   
   setupMobileButtons() {
-    const buttons = document.querySelectorAll('.control-btn');
-    const dirMap = {
-      'up': { x: 0, y: -CONFIG.GRID },
-      'down': { x: 0, y: CONFIG.GRID },
-      'left': { x: -CONFIG.GRID, y: 0 },
-      'right': { x: CONFIG.GRID, y: 0 }
-    };
-    
-    buttons.forEach(btn => {
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const dir = dirMap[btn.dataset.dir];
-        this.onDirection(dir);
-        this.onBoost(dir);
-      });
-      
-      btn.addEventListener('mousedown', (e) => {
-        const dir = dirMap[btn.dataset.dir];
-        this.onDirection(dir);
-        this.onBoost(dir);
-      });
-    });
+    // Кнопки отключены - только свайпы
+    console.log('📱 Mobile buttons disabled - using swipe controls only');
   }
 }
