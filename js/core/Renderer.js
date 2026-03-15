@@ -12,6 +12,15 @@ export default class Renderer {
     // Голова змейки
     this.sprites.snakeHead = new Image();
     this.sprites.snakeHead.src = './assets/images/1.png';
+    
+    // Отладка
+    this.sprites.snakeHead.onload = () => {
+      console.log('✅ Snake sprite loaded successfully');
+    };
+    
+    this.sprites.snakeHead.onerror = () => {
+      console.error('❌ Failed to load snake sprite');
+    };
   }
 
   // Очистка экрана
@@ -47,8 +56,18 @@ export default class Renderer {
       const isHead = index === 0;
       const size = CONFIG.GRID;
 
+      // Проверяем загрузку спрайта
+      const spriteLoaded = this.sprites.snakeHead && 
+                          this.sprites.snakeHead.complete && 
+                          this.sprites.snakeHead.naturalWidth !== 0;
+
+      // Отладка для телефона
+      if (index === 1 && !spriteLoaded) {
+        console.log('🐍 Snake body using fallback (sprite not loaded)');
+      }
+
       // Если спрайт загрузился - рисуем его для всех сегментов
-      if (this.sprites.snakeHead && this.sprites.snakeHead.complete && this.sprites.snakeHead.naturalWidth !== 0) {
+      if (spriteLoaded) {
         this.ctx.save();
         
         // Поворот только для головы
