@@ -18,8 +18,8 @@ export const CONFIG = {
   
   EMOJIS: {
     snakeHead: '🐍',
-    food: '🍎',
-    obstacle: '🪨',
+    food: '💊',
+    obstacle: '💀',
     star: '⭐',
     hammer: '🔨'
   },

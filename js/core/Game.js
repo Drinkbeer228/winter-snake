@@ -187,7 +187,7 @@ export class Game {
   }
   
   updateUI() {
-    document.getElementById('scoreDisplay').textContent = `🍎 ${this.score}`;
+    document.getElementById('scoreDisplay').textContent = `💊 ${this.score}`;
     const speedMult = (CONFIG.BASE_SPEED / this.currentSpeed).toFixed(1);
     document.getElementById('speedDisplay').textContent = `⚡ ${speedMult}x`;
   }
